@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/supermarket_db
+    username: supermarket_user
+    password: supermarket_pass
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: supermarket
+
+  flyway:
+    enabled: false

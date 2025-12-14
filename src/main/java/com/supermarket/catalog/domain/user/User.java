@@ -1,9 +1,12 @@
 package com.supermarket.catalog.domain.user;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 @Entity
 @Table(name = "users")
 public class User {

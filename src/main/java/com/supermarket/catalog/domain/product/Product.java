@@ -1,10 +1,13 @@
 package com.supermarket.catalog.domain.product;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 @Entity
 @Table(name = "products")
 public class Product {
