@@ -4,10 +4,14 @@ import com.supermarket.catalog.exception.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
+@Transactional
 class UserServiceTest {
 
     @Autowired
@@ -16,10 +20,12 @@ class UserServiceTest {
     @Test
     void creatingDuplicateUsernameShouldFail() {
 
-        userService.createUser("test", "pass", "a@test.com");
+        String username = "test_" + UUID.randomUUID();
+
+        userService.createUser(username, "pass", "a@test.com");
 
         assertThatThrownBy(() ->
-                userService.createUser("test", "pass", "b@test.com")
+                userService.createUser(username, "pass", "b@test.com")
         ).isInstanceOf(ValidationException.class);
     }
 }
