@@ -1,4 +1,11 @@
 package com.supermarket.catalog.dto.user;
 
-public class UserResponse {
-}
+import java.time.Instant;
+import java.util.UUID;
+
+public record UserResponse(
+        UUID id,
+        String username,
+        String email,
+        Instant joinedAt
+) {}

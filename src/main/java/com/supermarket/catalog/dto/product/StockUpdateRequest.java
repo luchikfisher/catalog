@@ -1,4 +1,5 @@
 package com.supermarket.catalog.dto.product;
 
-public class StockUpdateRequest {
-}
+import jakarta.validation.constraints.Positive;
+
+public record StockUpdateRequest(@Positive int amount) {}
