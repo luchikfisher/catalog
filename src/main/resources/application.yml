@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: supermarket-catalog
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/supermarket_db
+    username: supermarket_user
+    password: supermarket_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: supermarket
+        format_sql: true
+
+  flyway:
+    enabled: true
+    schemas: supermarket
+    default-schema: supermarket
+    locations: classpath:db/migration
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: DEBUG
