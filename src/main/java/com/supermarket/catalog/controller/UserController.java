@@ -46,6 +46,7 @@ public class UserController {
         userService.updateUser(
                 id,
                 request.username(),
+                request.password(),
                 request.email()
         );
     }

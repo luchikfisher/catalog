@@ -12,9 +12,16 @@ public class GlobalExceptionHandler {
         return e.getMessage();
     }
 
-    @ExceptionHandler(ValidationException.class)
+    @ExceptionHandler(BusinessValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleValidation(ValidationException e) {
+    public String handleValidation(BusinessValidationException e) {
         return e.getMessage();
     }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public String handleUnauthorized(UnauthorizedException e) {
+        return e.getMessage();
+    }
+
 }

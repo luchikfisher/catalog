@@ -19,7 +19,7 @@ public interface ProductService {
 
     Product getProduct(UUID productId);
 
-    void updateProduct(
+    UUID updateProduct(
             UUID productId,
             String name,
             Category category,
@@ -28,9 +28,9 @@ public interface ProductService {
             String description
     );
 
-    void increaseStock(UUID productId, int amount);
+    UUID increaseStock(UUID productId, int amount);
 
-    void decreaseStock(UUID productId, int amount);
+    UUID decreaseStock(UUID productId, int amount);
 
-    void deleteProduct(UUID productId);
+    UUID deleteProduct(UUID productId);
 }

@@ -2,7 +2,7 @@ package com.supermarket.catalog.service.impl;
 
 import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.exception.ResourceNotFoundException;
-import com.supermarket.catalog.exception.ValidationException;
+import com.supermarket.catalog.exception.BusinessValidationException;
 import com.supermarket.catalog.repository.UserRepository;
 import com.supermarket.catalog.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
         if (userRepository.existsByUsername(username)) {
             log.warn("Attempt to create duplicate username: {}", username);
-            throw new ValidationException("Username already exists");
+            throw new BusinessValidationException("Username already exists");
         }
 
         User user = new User(
@@ -51,19 +51,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(UUID userId, String username, String email) {
+    public void updateUser(UUID userId, String username, String password, String email) {
 
         User user = getUser(userId);
 
         if (!user.getUsername().equals(username)
                 && userRepository.existsByUsername(username)) {
-            throw new ValidationException("Username already exists");
+            throw new BusinessValidationException("Username already exists");
         }
 
         User updated = new User(
                 user.getId(),
                 username,
-                user.getPassword(),
+                password,
                 email,
                 user.getJoinedAt()
         );

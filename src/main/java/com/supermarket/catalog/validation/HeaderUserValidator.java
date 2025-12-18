@@ -1,5 +1,6 @@
 package com.supermarket.catalog.validation;
 
+import com.supermarket.catalog.exception.UnauthorizedException;
 import com.supermarket.catalog.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,26 +29,20 @@ public class HeaderUserValidator implements HandlerInterceptor {
         String userId = request.getHeader(USER_ID_HEADER);
 
         if (Objects.isNull(username) || Objects.isNull(userId)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return false;
+            throw new UnauthorizedException("Missing authentication headers");
         }
 
         UUID id;
         try {
             id = UUID.fromString(userId);
         } catch (IllegalArgumentException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return false;
+            throw new UnauthorizedException("Invalid user ID format");
         }
 
-        boolean valid = userRepository.findById(id)
-                .map(u -> u.getUsername().equals(username))
-                .orElse(false);
+        userRepository.findById(id)
+                .filter(u -> u.getUsername().equals(username))
+                .orElseThrow(() -> new UnauthorizedException("Invalid username or user ID"));
 
-        if (!valid) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        }
-
-        return valid;
+        return true;
     }
 }

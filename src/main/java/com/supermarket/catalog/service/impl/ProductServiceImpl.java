@@ -3,7 +3,7 @@ package com.supermarket.catalog.service.impl;
 import com.supermarket.catalog.domain.product.Category;
 import com.supermarket.catalog.domain.product.Product;
 import com.supermarket.catalog.exception.ResourceNotFoundException;
-import com.supermarket.catalog.exception.ValidationException;
+import com.supermarket.catalog.exception.BusinessValidationException;
 import com.supermarket.catalog.repository.ProductRepository;
 import com.supermarket.catalog.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ public class ProductServiceImpl implements ProductService {
         int quantity = Objects.requireNonNullElse(initialQuantity, 0);
 
         if (quantity < 0) {
-            throw new ValidationException("Initial quantity cannot be negative");
+            throw new BusinessValidationException("Initial quantity cannot be negative");
         }
 
         Product product = new Product(
@@ -67,7 +67,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void updateProduct(
+    public UUID updateProduct(
             UUID productId,
             String name,
             Category category,
@@ -93,10 +93,11 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.save(updated);
         log.info("Product updated: {}", productId);
+        return productId;
     }
 
     @Override
-    public void increaseStock(UUID productId, int amount) {
+    public UUID increaseStock(UUID productId, int amount) {
 
         Product product = getProduct(productId);
 
@@ -113,16 +114,17 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.save(updated);
         log.info("Stock increased for product {} by {}", productId, amount);
+        return productId;
     }
 
     @Override
-    public void decreaseStock(UUID productId, int amount) {
+    public UUID decreaseStock(UUID productId, int amount) {
 
         Product product = getProduct(productId);
 
         int newStock = product.getStockQuantity() - amount;
         if (newStock < 0) {
-            throw new ValidationException("Stock cannot be negative");
+            throw new BusinessValidationException("Stock cannot be negative");
         }
 
         Product updated = new Product(
@@ -138,10 +140,11 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.save(updated);
         log.info("Stock decreased for product {} by {}", productId, amount);
+        return productId;
     }
 
     @Override
-    public void deleteProduct(UUID productId) {
+    public UUID deleteProduct(UUID productId) {
 
         if (!productRepository.existsById(productId)) {
             throw new ResourceNotFoundException("Product not found: " + productId);
@@ -149,11 +152,12 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.deleteById(productId);
         log.info("Product deleted: {}", productId);
+        return productId;
     }
 
     private void validatePrice(BigDecimal price) {
         if (price == null || price.signum() <= 0) {
-            throw new ValidationException("Price must be positive");
+            throw new BusinessValidationException("Price must be positive");
         }
     }
 }
