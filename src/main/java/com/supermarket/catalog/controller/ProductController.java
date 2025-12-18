@@ -4,6 +4,7 @@ import com.supermarket.catalog.domain.product.Product;
 import com.supermarket.catalog.dto.product.*;
 import com.supermarket.catalog.service.ProductService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,13 +12,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/products")
+@RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -27,7 +25,8 @@ public class ProductController {
                 request.category(),
                 request.price(),
                 request.supplier(),
-                request.description()
+                request.description(),
+                request.initialQuantity()
         );
     }
 
@@ -35,14 +34,22 @@ public class ProductController {
     public ProductResponse get(@PathVariable UUID id) {
         Product p = productService.getProduct(id);
         return new ProductResponse(
-                p.getId(), p.getName(), p.getCategory(), p.getPrice(),
-                p.getStockQuantity(), p.getSupplier(), p.getDescription(), p.getCreatedAt()
+                p.getId(),
+                p.getName(),
+                p.getCategory(),
+                p.getPrice(),
+                p.getStockQuantity(),
+                p.getSupplier(),
+                p.getDescription(),
+                p.getCreatedAt()
         );
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(@PathVariable UUID id, @RequestBody @Valid UpdateProductRequest request) {
+    public void update(@PathVariable UUID id,
+                       @RequestBody @Valid UpdateProductRequest request) {
+
         productService.updateProduct(
                 id,
                 request.name(),
@@ -55,13 +62,17 @@ public class ProductController {
 
     @PostMapping("/{id}/stock/increase")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void increase(@PathVariable UUID id, @RequestBody @Valid StockUpdateRequest request) {
+    public void increase(@PathVariable UUID id,
+                         @RequestBody @Valid StockUpdateRequest request) {
+
         productService.increaseStock(id, request.amount());
     }
 
     @PostMapping("/{id}/stock/decrease")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void decrease(@PathVariable UUID id, @RequestBody @Valid StockUpdateRequest request) {
+    public void decrease(@PathVariable UUID id,
+                         @RequestBody @Valid StockUpdateRequest request) {
+
         productService.decreaseStock(id, request.amount());
     }
 

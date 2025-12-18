@@ -2,30 +2,27 @@ package com.supermarket.catalog.service.impl;
 
 import com.supermarket.catalog.domain.product.Category;
 import com.supermarket.catalog.domain.product.Product;
-import com.supermarket.catalog.exception.NotFoundException;
+import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.exception.ValidationException;
 import com.supermarket.catalog.repository.ProductRepository;
 import com.supermarket.catalog.service.ProductService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
-    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
-
     private final ProductRepository productRepository;
-
-    public ProductServiceImpl(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
 
     @Override
     public UUID createProduct(
@@ -33,24 +30,31 @@ public class ProductServiceImpl implements ProductService {
             Category category,
             BigDecimal price,
             String supplier,
-            String description
+            String description,
+            Integer initialQuantity
     ) {
 
         validatePrice(price);
+
+        int quantity = Objects.requireNonNullElse(initialQuantity, 0);
+
+        if (quantity < 0) {
+            throw new ValidationException("Initial quantity cannot be negative");
+        }
 
         Product product = new Product(
                 UUID.randomUUID(),
                 name,
                 category,
                 price,
-                0,
+                quantity,
                 supplier,
                 description,
                 Instant.now()
         );
 
         productRepository.save(product);
-        log.info("Product created: {}", product.getId());
+        log.info("Product created: {} with initial quantity {}", product.getId(), quantity);
 
         return product.getId();
     }
@@ -59,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public Product getProduct(UUID productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new NotFoundException("Product not found: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
     }
 
     @Override
@@ -94,8 +98,6 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void increaseStock(UUID productId, int amount) {
 
-        validateStockAmount(amount);
-
         Product product = getProduct(productId);
 
         Product updated = new Product(
@@ -116,13 +118,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void decreaseStock(UUID productId, int amount) {
 
-        validateStockAmount(amount);
-
         Product product = getProduct(productId);
 
         int newStock = product.getStockQuantity() - amount;
         if (newStock < 0) {
-            log.warn("Attempt to reduce stock below zero for product {}", productId);
             throw new ValidationException("Stock cannot be negative");
         }
 
@@ -145,17 +144,11 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProduct(UUID productId) {
 
         if (!productRepository.existsById(productId)) {
-            throw new NotFoundException("Product not found: " + productId);
+            throw new ResourceNotFoundException("Product not found: " + productId);
         }
 
         productRepository.deleteById(productId);
         log.info("Product deleted: {}", productId);
-    }
-
-    private void validateStockAmount(int amount) {
-        if (amount <= 0) {
-            throw new ValidationException("Stock amount must be positive");
-        }
     }
 
     private void validatePrice(BigDecimal price) {

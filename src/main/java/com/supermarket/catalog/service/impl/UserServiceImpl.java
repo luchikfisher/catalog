@@ -1,27 +1,23 @@
 package com.supermarket.catalog.service.impl;
 
 import com.supermarket.catalog.domain.user.User;
-import com.supermarket.catalog.exception.NotFoundException;
+import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.exception.ValidationException;
 import com.supermarket.catalog.repository.UserRepository;
 import com.supermarket.catalog.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
-
     private final UserRepository userRepository;
-
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public UUID createUser(String username, String password, String email) {
@@ -47,8 +43,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUser(UUID userId) {
+        log.info("Get user request {}", userId);
+
         return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId)
+                );
     }
 
     @Override
@@ -75,8 +74,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(UUID userId) {
+
         if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User not found: " + userId);
+            throw new ResourceNotFoundException("User not found: " + userId);
         }
 
         userRepository.deleteById(userId);

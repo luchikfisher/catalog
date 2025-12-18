@@ -12,5 +12,6 @@ public record CreateProductRequest(
         @NotNull Category category,
         @NotNull @Positive BigDecimal price,
         @NotBlank String supplier,
+        Integer initialQuantity,
         String description
 ) {}

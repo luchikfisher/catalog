@@ -1,6 +1,6 @@
 package com.supermarket.catalog.exception;
 
-public class ValidationException extends ApiException {
+public class ValidationException extends ApplicationException {
 
     public ValidationException(String message) {
         super(message);

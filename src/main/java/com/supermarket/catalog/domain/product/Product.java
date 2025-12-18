@@ -1,15 +1,19 @@
 package com.supermarket.catalog.domain.product;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter
 @Entity
 @Table(name = "products")
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
 
     @Id
@@ -31,35 +35,8 @@ public class Product {
     @Column(nullable = false)
     private String supplier;
 
-    @Column
     private String description;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
-    protected Product() {
-        // for JPA
-    }
-
-    public Product(
-            UUID id,
-            String name,
-            Category category,
-            BigDecimal price,
-            int stockQuantity,
-            String supplier,
-            String description,
-            Instant createdAt
-    ) {
-        this.id = id;
-        this.name = name;
-        this.category = category;
-        this.price = price;
-        this.stockQuantity = stockQuantity;
-        this.supplier = supplier;
-        this.description = description;
-        this.createdAt = createdAt;
-    }
-
-    // getters only
 }

@@ -13,7 +13,8 @@ public interface ProductService {
             Category category,
             BigDecimal price,
             String supplier,
-            String description
+            String description,
+            Integer initialQuantity
     );
 
     Product getProduct(UUID productId);

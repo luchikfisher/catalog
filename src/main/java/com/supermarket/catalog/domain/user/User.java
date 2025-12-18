@@ -1,14 +1,19 @@
 package com.supermarket.catalog.domain.user;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter
 @Entity
 @Table(name = "users")
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
@@ -25,18 +30,4 @@ public class User {
 
     @Column(name = "joined_at", nullable = false)
     private Instant joinedAt;
-
-    protected User() {
-        // for JPA
-    }
-
-    public User(UUID id, String username, String password, String email, Instant joinedAt) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.joinedAt = joinedAt;
-    }
-
-    // getters only (no setters!)
 }
