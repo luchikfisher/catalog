@@ -1,13 +1,13 @@
 package com.supermarket.catalog.service.impl;
 
 import com.supermarket.catalog.domain.product.Product;
+import com.supermarket.catalog.dto.product.CreateProductRequest;
+import com.supermarket.catalog.dto.product.UpdateProductRequest;
+import com.supermarket.catalog.dto.product.StockUpdateRequest;
 import com.supermarket.catalog.exception.BusinessValidationException;
 import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.repository.ProductRepository;
 import com.supermarket.catalog.service.ProductService;
-import com.supermarket.catalog.service.command.CreateProductCommand;
-import com.supermarket.catalog.service.command.UpdateProductCommand;
-import com.supermarket.catalog.service.command.UpdateStockCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,23 +27,23 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== CREATE =====
     @Override
-    public UUID createProduct(CreateProductCommand command) {
+    public UUID createProduct(CreateProductRequest request) {
 
-        validatePrice(command.price());
+        validatePrice(request.price());
 
-        int quantity = command.initialQuantity() == null ? 0 : command.initialQuantity();
+        int quantity = request.initialQuantity() == null ? 0 : request.initialQuantity();
         if (quantity < 0) {
             throw new BusinessValidationException("Initial quantity cannot be negative");
         }
 
         Product product = new Product(
                 UUID.randomUUID(),
-                command.name(),
-                command.category(),
-                command.price(),
+                request.name(),
+                request.category(),
+                request.price(),
                 quantity,
-                command.supplier(),
-                command.description(),
+                request.supplier(),
+                request.description(),
                 Instant.now()
         );
 
@@ -65,20 +65,20 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== UPDATE PRODUCT =====
     @Override
-    public UUID updateProduct(UUID productId, UpdateProductCommand command) {
+    public UUID updateProduct(UUID productId, UpdateProductRequest request) {
 
-        validatePrice(command.price());
+        validatePrice(request.price());
 
         Product existing = getProduct(productId);
 
         Product updated = new Product(
                 existing.getId(),
-                command.name(),
-                command.category(),
-                command.price(),
+                request.name(),
+                request.category(),
+                request.price(),
                 existing.getStockQuantity(),
-                command.supplier(),
-                command.description(),
+                request.supplier(),
+                request.description(),
                 existing.getCreatedAt()
         );
 
@@ -90,9 +90,9 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== INCREASE STOCK =====
     @Override
-    public UUID increaseStock(UUID productId, UpdateStockCommand command) {
+    public UUID increaseStock(UUID productId, StockUpdateRequest request) {
 
-        validateStockAmount(command.amount());
+        validateStockAmount(request.amount());
 
         Product product = getProduct(productId);
 
@@ -101,27 +101,27 @@ public class ProductServiceImpl implements ProductService {
                 product.getName(),
                 product.getCategory(),
                 product.getPrice(),
-                product.getStockQuantity() + command.amount(),
+                product.getStockQuantity() + request.amount(),
                 product.getSupplier(),
                 product.getDescription(),
                 product.getCreatedAt()
         );
 
         productRepository.save(updated);
-        log.info("Stock increased for product {} by {}", productId, command.amount());
+        log.info("Stock increased for product {} by {}", productId, request.amount());
 
         return productId;
     }
 
     // ===== DECREASE STOCK =====
     @Override
-    public UUID decreaseStock(UUID productId, UpdateStockCommand command) {
+    public UUID decreaseStock(UUID productId, StockUpdateRequest request) {
 
-        validateStockAmount(command.amount());
+        validateStockAmount(request.amount());
 
         Product product = getProduct(productId);
 
-        int newStock = product.getStockQuantity() - command.amount();
+        int newStock = product.getStockQuantity() - request.amount();
         if (newStock < 0) {
             throw new BusinessValidationException("Stock cannot be negative");
         }
@@ -138,7 +138,7 @@ public class ProductServiceImpl implements ProductService {
         );
 
         productRepository.save(updated);
-        log.info("Stock decreased for product {} by {}", productId, command.amount());
+        log.info("Stock decreased for product {} by {}", productId, request.amount());
 
         return productId;
     }

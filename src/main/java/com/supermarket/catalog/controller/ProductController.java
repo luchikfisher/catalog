@@ -3,9 +3,6 @@ package com.supermarket.catalog.controller;
 import com.supermarket.catalog.domain.product.Product;
 import com.supermarket.catalog.dto.product.*;
 import com.supermarket.catalog.service.ProductService;
-import com.supermarket.catalog.service.command.CreateProductCommand;
-import com.supermarket.catalog.service.command.UpdateProductCommand;
-import com.supermarket.catalog.service.command.UpdateStockCommand;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,17 +20,7 @@ public class ProductController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UUID create(@RequestBody @Valid CreateProductRequest request) {
-
-        CreateProductCommand command = new CreateProductCommand(
-                request.name(),
-                request.category(),
-                request.price(),
-                request.supplier(),
-                request.description(),
-                request.initialQuantity()
-        );
-
-        return productService.createProduct(command);
+        return productService.createProduct(request);
     }
 
     @GetMapping("/{id}")
@@ -58,15 +45,7 @@ public class ProductController {
     public void update(@PathVariable UUID id,
                        @RequestBody @Valid UpdateProductRequest request) {
 
-        UpdateProductCommand command = new UpdateProductCommand(
-                request.name(),
-                request.category(),
-                request.price(),
-                request.supplier(),
-                request.description()
-        );
-
-        productService.updateProduct(id, command);
+        productService.updateProduct(id, request);
     }
 
     @PostMapping("/{id}/stock/increase")
@@ -74,10 +53,7 @@ public class ProductController {
     public void increase(@PathVariable UUID id,
                          @RequestBody @Valid StockUpdateRequest request) {
 
-        productService.increaseStock(
-                id,
-                new UpdateStockCommand(request.amount())
-        );
+        productService.increaseStock(id, request);
     }
 
     @PostMapping("/{id}/stock/decrease")
@@ -85,10 +61,7 @@ public class ProductController {
     public void decrease(@PathVariable UUID id,
                          @RequestBody @Valid StockUpdateRequest request) {
 
-        productService.decreaseStock(
-                id,
-                new UpdateStockCommand(request.amount())
-        );
+        productService.decreaseStock(id, request);
     }
 
     @DeleteMapping("/{id}")

@@ -1,16 +1,18 @@
 package com.supermarket.catalog.service;
 
 import com.supermarket.catalog.domain.user.User;
+import com.supermarket.catalog.dto.user.CreateUserRequest;
+import com.supermarket.catalog.dto.user.UpdateUserRequest;
 
 import java.util.UUID;
 
 public interface UserService {
 
-    UUID createUser(String username, String password, String email);
+    UUID createUser(CreateUserRequest request);
 
     User getUser(UUID userId);
 
-    void updateUser(UUID userId, String username, String password, String email);
+    UUID updateUser(UUID userId, UpdateUserRequest request);
 
-    void deleteUser(UUID userId);
+    UUID deleteUser(UUID userId);
 }

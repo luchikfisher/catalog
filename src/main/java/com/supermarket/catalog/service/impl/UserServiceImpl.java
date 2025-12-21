@@ -1,8 +1,10 @@
 package com.supermarket.catalog.service.impl;
 
 import com.supermarket.catalog.domain.user.User;
-import com.supermarket.catalog.exception.ResourceNotFoundException;
+import com.supermarket.catalog.dto.user.CreateUserRequest;
+import com.supermarket.catalog.dto.user.UpdateUserRequest;
 import com.supermarket.catalog.exception.BusinessValidationException;
+import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.repository.UserRepository;
 import com.supermarket.catalog.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,19 +21,20 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
+    // ===== CREATE =====
     @Override
-    public UUID createUser(String username, String password, String email) {
+    public UUID createUser(CreateUserRequest request) {
 
-        if (userRepository.existsByUsername(username)) {
-            log.warn("Attempt to create duplicate username: {}", username);
+        if (userRepository.existsByUsername(request.username())) {
+            log.warn("Attempt to create duplicate username: {}", request.username());
             throw new BusinessValidationException("Username already exists");
         }
 
         User user = new User(
                 UUID.randomUUID(),
-                username,
-                password,
-                email,
+                request.username(),
+                request.password(),
+                request.email(),
                 Instant.now()
         );
 
@@ -41,38 +44,45 @@ public class UserServiceImpl implements UserService {
         return user.getId();
     }
 
+    // ===== READ =====
     @Override
     public User getUser(UUID userId) {
         log.info("Get user request {}", userId);
 
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found: " + userId)
                 );
     }
 
+    // ===== UPDATE =====
     @Override
-    public void updateUser(UUID userId, String username, String password, String email) {
+    public UUID updateUser(UUID userId, UpdateUserRequest request) {
 
         User user = getUser(userId);
 
-        if (!user.getUsername().equals(username)
-                && userRepository.existsByUsername(username)) {
+        if (!user.getUsername().equals(request.username())
+                && userRepository.existsByUsername(request.username())) {
             throw new BusinessValidationException("Username already exists");
         }
 
         User updated = new User(
                 user.getId(),
-                username,
-                password,
-                email,
+                request.username(),
+                request.password(),
+                request.email(),
                 user.getJoinedAt()
         );
 
         userRepository.save(updated);
         log.info("User updated: {}", userId);
+
+        return userId;
     }
+
+    // ===== DELETE =====
     @Override
-    public void deleteUser(UUID userId) {
+    public UUID deleteUser(UUID userId) {
 
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found: " + userId);
@@ -80,5 +90,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.deleteById(userId);
         log.info("User deleted: {}", userId);
+
+        return userId;
     }
 }

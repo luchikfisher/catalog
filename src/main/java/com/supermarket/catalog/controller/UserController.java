@@ -20,11 +20,7 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UUID create(@RequestBody @Valid CreateUserRequest request) {
-        return userService.createUser(
-                request.username(),
-                request.password(),
-                request.email()
-        );
+        return userService.createUser(request);
     }
 
     @GetMapping("/{id}")
@@ -43,12 +39,7 @@ public class UserController {
     public void update(@PathVariable UUID id,
                        @RequestBody @Valid UpdateUserRequest request) {
 
-        userService.updateUser(
-                id,
-                request.username(),
-                request.password(),
-                request.email()
-        );
+        userService.updateUser(id, request);
     }
 
     @DeleteMapping("/{id}")
