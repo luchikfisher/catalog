@@ -71,7 +71,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(updated);
         log.info("User updated: {}", userId);
     }
-
     @Override
     public void deleteUser(UUID userId) {
 

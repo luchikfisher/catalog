@@ -1,11 +1,13 @@
 package com.supermarket.catalog.service.impl;
 
-import com.supermarket.catalog.domain.product.Category;
 import com.supermarket.catalog.domain.product.Product;
-import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.exception.BusinessValidationException;
+import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.repository.ProductRepository;
 import com.supermarket.catalog.service.ProductService;
+import com.supermarket.catalog.service.command.CreateProductCommand;
+import com.supermarket.catalog.service.command.UpdateProductCommand;
+import com.supermarket.catalog.service.command.UpdateStockCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -24,32 +25,25 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
+    // ===== CREATE =====
     @Override
-    public UUID createProduct(
-            String name,
-            Category category,
-            BigDecimal price,
-            String supplier,
-            String description,
-            Integer initialQuantity
-    ) {
+    public UUID createProduct(CreateProductCommand command) {
 
-        validatePrice(price);
+        validatePrice(command.price());
 
-        int quantity = Objects.requireNonNullElse(initialQuantity, 0);
-
+        int quantity = command.initialQuantity() == null ? 0 : command.initialQuantity();
         if (quantity < 0) {
             throw new BusinessValidationException("Initial quantity cannot be negative");
         }
 
         Product product = new Product(
                 UUID.randomUUID(),
-                name,
-                category,
-                price,
+                command.name(),
+                command.category(),
+                command.price(),
                 quantity,
-                supplier,
-                description,
+                command.supplier(),
+                command.description(),
                 Instant.now()
         );
 
@@ -59,45 +53,46 @@ public class ProductServiceImpl implements ProductService {
         return product.getId();
     }
 
+    // ===== READ =====
     @Override
     @Transactional(readOnly = true)
     public Product getProduct(UUID productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found: " + productId)
+                );
     }
 
+    // ===== UPDATE PRODUCT =====
     @Override
-    public UUID updateProduct(
-            UUID productId,
-            String name,
-            Category category,
-            BigDecimal price,
-            String supplier,
-            String description
-    ) {
+    public UUID updateProduct(UUID productId, UpdateProductCommand command) {
 
-        validatePrice(price);
+        validatePrice(command.price());
 
         Product existing = getProduct(productId);
 
         Product updated = new Product(
                 existing.getId(),
-                name,
-                category,
-                price,
+                command.name(),
+                command.category(),
+                command.price(),
                 existing.getStockQuantity(),
-                supplier,
-                description,
+                command.supplier(),
+                command.description(),
                 existing.getCreatedAt()
         );
 
         productRepository.save(updated);
         log.info("Product updated: {}", productId);
+
         return productId;
     }
 
+    // ===== INCREASE STOCK =====
     @Override
-    public UUID increaseStock(UUID productId, int amount) {
+    public UUID increaseStock(UUID productId, UpdateStockCommand command) {
+
+        validateStockAmount(command.amount());
 
         Product product = getProduct(productId);
 
@@ -106,23 +101,27 @@ public class ProductServiceImpl implements ProductService {
                 product.getName(),
                 product.getCategory(),
                 product.getPrice(),
-                product.getStockQuantity() + amount,
+                product.getStockQuantity() + command.amount(),
                 product.getSupplier(),
                 product.getDescription(),
                 product.getCreatedAt()
         );
 
         productRepository.save(updated);
-        log.info("Stock increased for product {} by {}", productId, amount);
+        log.info("Stock increased for product {} by {}", productId, command.amount());
+
         return productId;
     }
 
+    // ===== DECREASE STOCK =====
     @Override
-    public UUID decreaseStock(UUID productId, int amount) {
+    public UUID decreaseStock(UUID productId, UpdateStockCommand command) {
+
+        validateStockAmount(command.amount());
 
         Product product = getProduct(productId);
 
-        int newStock = product.getStockQuantity() - amount;
+        int newStock = product.getStockQuantity() - command.amount();
         if (newStock < 0) {
             throw new BusinessValidationException("Stock cannot be negative");
         }
@@ -139,10 +138,12 @@ public class ProductServiceImpl implements ProductService {
         );
 
         productRepository.save(updated);
-        log.info("Stock decreased for product {} by {}", productId, amount);
+        log.info("Stock decreased for product {} by {}", productId, command.amount());
+
         return productId;
     }
 
+    // ===== DELETE =====
     @Override
     public UUID deleteProduct(UUID productId) {
 
@@ -152,12 +153,20 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.deleteById(productId);
         log.info("Product deleted: {}", productId);
+
         return productId;
     }
 
+    // ===== VALIDATION =====
     private void validatePrice(BigDecimal price) {
         if (price == null || price.signum() <= 0) {
             throw new BusinessValidationException("Price must be positive");
+        }
+    }
+
+    private void validateStockAmount(int amount) {
+        if (amount <= 0) {
+            throw new BusinessValidationException("Stock amount must be positive");
         }
     }
 }
