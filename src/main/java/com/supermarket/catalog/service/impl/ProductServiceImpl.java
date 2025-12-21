@@ -5,7 +5,7 @@ import com.supermarket.catalog.dto.product.CreateProductRequest;
 import com.supermarket.catalog.dto.product.UpdateProductRequest;
 import com.supermarket.catalog.dto.product.StockUpdateRequest;
 import com.supermarket.catalog.exception.InvalidInputException;
-import com.supermarket.catalog.exception.ResourceNotFoundException;
+import com.supermarket.catalog.exception.EntityNotFoundException;
 import com.supermarket.catalog.repository.ProductRepository;
 import com.supermarket.catalog.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -58,18 +58,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Product getProduct(UUID productId)
-            throws ResourceNotFoundException {
+            throws EntityNotFoundException {
 
         return productRepository.findById(productId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Product not found: " + productId)
+                        new EntityNotFoundException("Product not found: " + productId)
                 );
     }
 
     // ===== UPDATE PRODUCT =====
     @Override
     public UUID updateProduct(UUID productId, UpdateProductRequest request)
-            throws InvalidInputException, ResourceNotFoundException {
+            throws InvalidInputException, EntityNotFoundException {
 
         validatePrice(request.price());
 
@@ -95,7 +95,7 @@ public class ProductServiceImpl implements ProductService {
     // ===== INCREASE STOCK =====
     @Override
     public UUID increaseStock(UUID productId, StockUpdateRequest request)
-            throws InvalidInputException, ResourceNotFoundException {
+            throws InvalidInputException, EntityNotFoundException {
 
         validateStockAmount(request.amount());
 
@@ -121,7 +121,7 @@ public class ProductServiceImpl implements ProductService {
     // ===== DECREASE STOCK =====
     @Override
     public UUID decreaseStock(UUID productId, StockUpdateRequest request)
-            throws InvalidInputException, ResourceNotFoundException {
+            throws InvalidInputException, EntityNotFoundException {
 
         validateStockAmount(request.amount());
 
@@ -152,10 +152,10 @@ public class ProductServiceImpl implements ProductService {
     // ===== DELETE =====
     @Override
     public UUID deleteProduct(UUID productId)
-            throws ResourceNotFoundException {
+            throws EntityNotFoundException {
 
         if (!productRepository.existsById(productId)) {
-            throw new ResourceNotFoundException("Product not found: " + productId);
+            throw new EntityNotFoundException("Product not found: " + productId);
         }
 
         productRepository.deleteById(productId);

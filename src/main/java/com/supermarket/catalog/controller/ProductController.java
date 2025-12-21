@@ -6,7 +6,7 @@ import com.supermarket.catalog.dto.product.ProductResponse;
 import com.supermarket.catalog.dto.product.StockUpdateRequest;
 import com.supermarket.catalog.dto.product.UpdateProductRequest;
 import com.supermarket.catalog.exception.InvalidInputException;
-import com.supermarket.catalog.exception.ResourceNotFoundException;
+import com.supermarket.catalog.exception.EntityNotFoundException;
 import com.supermarket.catalog.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ProductResponse get(@PathVariable UUID id)
-            throws ResourceNotFoundException {
+            throws EntityNotFoundException {
 
         Product p = productService.getProduct(id);
 
@@ -52,7 +52,7 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@PathVariable UUID id,
                        @RequestBody @Valid UpdateProductRequest request)
-            throws InvalidInputException, ResourceNotFoundException {
+            throws InvalidInputException, EntityNotFoundException {
 
         productService.updateProduct(id, request);
     }
@@ -61,7 +61,7 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void increase(@PathVariable UUID id,
                          @RequestBody @Valid StockUpdateRequest request)
-            throws InvalidInputException, ResourceNotFoundException {
+            throws InvalidInputException, EntityNotFoundException {
 
         productService.increaseStock(id, request);
     }
@@ -70,7 +70,7 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void decrease(@PathVariable UUID id,
                          @RequestBody @Valid StockUpdateRequest request)
-            throws InvalidInputException, ResourceNotFoundException {
+            throws InvalidInputException, EntityNotFoundException {
 
         productService.decreaseStock(id, request);
     }
@@ -78,7 +78,7 @@ public class ProductController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id)
-            throws ResourceNotFoundException {
+            throws EntityNotFoundException {
 
         productService.deleteProduct(id);
     }

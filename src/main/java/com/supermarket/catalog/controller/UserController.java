@@ -5,7 +5,7 @@ import com.supermarket.catalog.dto.user.CreateUserRequest;
 import com.supermarket.catalog.dto.user.UpdateUserRequest;
 import com.supermarket.catalog.dto.user.UserResponse;
 import com.supermarket.catalog.exception.ConflictException;
-import com.supermarket.catalog.exception.ResourceNotFoundException;
+import com.supermarket.catalog.exception.EntityNotFoundException;
 import com.supermarket.catalog.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserResponse get(@PathVariable UUID id)
-            throws ResourceNotFoundException {
+            throws EntityNotFoundException {
 
         User user = userService.getUser(id);
         return new UserResponse(
@@ -46,7 +46,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@PathVariable UUID id,
                        @RequestBody @Valid UpdateUserRequest request)
-            throws ConflictException, ResourceNotFoundException {
+            throws ConflictException, EntityNotFoundException {
 
         userService.updateUser(id, request);
     }
@@ -54,7 +54,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id)
-            throws ResourceNotFoundException {
+            throws EntityNotFoundException {
 
         userService.deleteUser(id);
     }
