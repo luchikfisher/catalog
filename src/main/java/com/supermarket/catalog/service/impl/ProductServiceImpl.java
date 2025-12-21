@@ -4,7 +4,7 @@ import com.supermarket.catalog.domain.product.Product;
 import com.supermarket.catalog.dto.product.CreateProductRequest;
 import com.supermarket.catalog.dto.product.UpdateProductRequest;
 import com.supermarket.catalog.dto.product.StockUpdateRequest;
-import com.supermarket.catalog.exception.BusinessValidationException;
+import com.supermarket.catalog.exception.InvalidInputException;
 import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.repository.ProductRepository;
 import com.supermarket.catalog.service.ProductService;
@@ -27,13 +27,14 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== CREATE =====
     @Override
-    public UUID createProduct(CreateProductRequest request) {
+    public UUID createProduct(CreateProductRequest request)
+            throws InvalidInputException {
 
         validatePrice(request.price());
 
         int quantity = request.initialQuantity() == null ? 0 : request.initialQuantity();
         if (quantity < 0) {
-            throw new BusinessValidationException("Initial quantity cannot be negative");
+            throw new InvalidInputException("Initial quantity cannot be negative");
         }
 
         Product product = new Product(
@@ -56,7 +57,9 @@ public class ProductServiceImpl implements ProductService {
     // ===== READ =====
     @Override
     @Transactional(readOnly = true)
-    public Product getProduct(UUID productId) {
+    public Product getProduct(UUID productId)
+            throws ResourceNotFoundException {
+
         return productRepository.findById(productId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Product not found: " + productId)
@@ -65,7 +68,8 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== UPDATE PRODUCT =====
     @Override
-    public UUID updateProduct(UUID productId, UpdateProductRequest request) {
+    public UUID updateProduct(UUID productId, UpdateProductRequest request)
+            throws InvalidInputException, ResourceNotFoundException {
 
         validatePrice(request.price());
 
@@ -90,7 +94,8 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== INCREASE STOCK =====
     @Override
-    public UUID increaseStock(UUID productId, StockUpdateRequest request) {
+    public UUID increaseStock(UUID productId, StockUpdateRequest request)
+            throws InvalidInputException, ResourceNotFoundException {
 
         validateStockAmount(request.amount());
 
@@ -115,7 +120,8 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== DECREASE STOCK =====
     @Override
-    public UUID decreaseStock(UUID productId, StockUpdateRequest request) {
+    public UUID decreaseStock(UUID productId, StockUpdateRequest request)
+            throws InvalidInputException, ResourceNotFoundException {
 
         validateStockAmount(request.amount());
 
@@ -123,7 +129,7 @@ public class ProductServiceImpl implements ProductService {
 
         int newStock = product.getStockQuantity() - request.amount();
         if (newStock < 0) {
-            throw new BusinessValidationException("Stock cannot be negative");
+            throw new InvalidInputException("Stock cannot be negative");
         }
 
         Product updated = new Product(
@@ -145,7 +151,8 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== DELETE =====
     @Override
-    public UUID deleteProduct(UUID productId) {
+    public UUID deleteProduct(UUID productId)
+            throws ResourceNotFoundException {
 
         if (!productRepository.existsById(productId)) {
             throw new ResourceNotFoundException("Product not found: " + productId);
@@ -158,15 +165,19 @@ public class ProductServiceImpl implements ProductService {
     }
 
     // ===== VALIDATION =====
-    private void validatePrice(BigDecimal price) {
+    private void validatePrice(BigDecimal price)
+            throws InvalidInputException {
+
         if (price == null || price.signum() <= 0) {
-            throw new BusinessValidationException("Price must be positive");
+            throw new InvalidInputException("Price must be positive");
         }
     }
 
-    private void validateStockAmount(int amount) {
+    private void validateStockAmount(int amount)
+            throws InvalidInputException {
+
         if (amount <= 0) {
-            throw new BusinessValidationException("Stock amount must be positive");
+            throw new InvalidInputException("Stock amount must be positive");
         }
     }
 }

@@ -23,7 +23,8 @@ public class HeaderUserValidator implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
-                             Object handler) {
+                             Object handler)
+            throws UnauthorizedException {
 
         String username = request.getHeader(USERNAME_HEADER);
         String userId = request.getHeader(USER_ID_HEADER);
@@ -41,7 +42,9 @@ public class HeaderUserValidator implements HandlerInterceptor {
 
         userRepository.findById(id)
                 .filter(u -> u.getUsername().equals(username))
-                .orElseThrow(() -> new UnauthorizedException("Invalid username or user ID"));
+                .orElseThrow(() ->
+                        new UnauthorizedException("Invalid username or user ID")
+                );
 
         return true;
     }

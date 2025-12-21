@@ -1,7 +1,11 @@
 package com.supermarket.catalog.controller;
 
-import com.supermarket.catalog.dto.user.*;
 import com.supermarket.catalog.domain.user.User;
+import com.supermarket.catalog.dto.user.CreateUserRequest;
+import com.supermarket.catalog.dto.user.UpdateUserRequest;
+import com.supermarket.catalog.dto.user.UserResponse;
+import com.supermarket.catalog.exception.ConflictException;
+import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +23,16 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UUID create(@RequestBody @Valid CreateUserRequest request) {
+    public UUID create(@RequestBody @Valid CreateUserRequest request)
+            throws ConflictException {
+
         return userService.createUser(request);
     }
 
     @GetMapping("/{id}")
-    public UserResponse get(@PathVariable UUID id) {
+    public UserResponse get(@PathVariable UUID id)
+            throws ResourceNotFoundException {
+
         User user = userService.getUser(id);
         return new UserResponse(
                 user.getId(),
@@ -37,14 +45,17 @@ public class UserController {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@PathVariable UUID id,
-                       @RequestBody @Valid UpdateUserRequest request) {
+                       @RequestBody @Valid UpdateUserRequest request)
+            throws ConflictException, ResourceNotFoundException {
 
         userService.updateUser(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable UUID id)
+            throws ResourceNotFoundException {
+
         userService.deleteUser(id);
     }
 }

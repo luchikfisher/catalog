@@ -3,7 +3,7 @@ package com.supermarket.catalog.service.impl;
 import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.dto.user.CreateUserRequest;
 import com.supermarket.catalog.dto.user.UpdateUserRequest;
-import com.supermarket.catalog.exception.BusinessValidationException;
+import com.supermarket.catalog.exception.ConflictException;
 import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.repository.UserRepository;
 import com.supermarket.catalog.service.UserService;
@@ -23,11 +23,12 @@ public class UserServiceImpl implements UserService {
 
     // ===== CREATE =====
     @Override
-    public UUID createUser(CreateUserRequest request) {
+    public UUID createUser(CreateUserRequest request)
+            throws ConflictException {
 
         if (userRepository.existsByUsername(request.username())) {
             log.warn("Attempt to create duplicate username: {}", request.username());
-            throw new BusinessValidationException("Username already exists");
+            throw new ConflictException("Username already exists");
         }
 
         User user = new User(
@@ -46,7 +47,9 @@ public class UserServiceImpl implements UserService {
 
     // ===== READ =====
     @Override
-    public User getUser(UUID userId) {
+    public User getUser(UUID userId)
+            throws ResourceNotFoundException {
+
         log.info("Get user request {}", userId);
 
         return userRepository.findById(userId)
@@ -57,13 +60,14 @@ public class UserServiceImpl implements UserService {
 
     // ===== UPDATE =====
     @Override
-    public UUID updateUser(UUID userId, UpdateUserRequest request) {
+    public UUID updateUser(UUID userId, UpdateUserRequest request)
+            throws ConflictException, ResourceNotFoundException {
 
         User user = getUser(userId);
 
         if (!user.getUsername().equals(request.username())
                 && userRepository.existsByUsername(request.username())) {
-            throw new BusinessValidationException("Username already exists");
+            throw new ConflictException("Username already exists");
         }
 
         User updated = new User(
@@ -82,7 +86,8 @@ public class UserServiceImpl implements UserService {
 
     // ===== DELETE =====
     @Override
-    public UUID deleteUser(UUID userId) {
+    public UUID deleteUser(UUID userId)
+            throws ResourceNotFoundException {
 
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found: " + userId);

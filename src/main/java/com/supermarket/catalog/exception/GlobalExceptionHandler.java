@@ -1,7 +1,9 @@
 package com.supermarket.catalog.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -12,9 +14,15 @@ public class GlobalExceptionHandler {
         return e.getMessage();
     }
 
-    @ExceptionHandler(BusinessValidationException.class)
+    @ExceptionHandler(InvalidInputException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleValidation(BusinessValidationException e) {
+    public String handleValidation(InvalidInputException e) {
+        return e.getMessage();
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleConflict(ConflictException e) {
         return e.getMessage();
     }
 
@@ -23,5 +31,4 @@ public class GlobalExceptionHandler {
     public String handleUnauthorized(UnauthorizedException e) {
         return e.getMessage();
     }
-
 }

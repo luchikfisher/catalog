@@ -1,7 +1,12 @@
 package com.supermarket.catalog.controller;
 
 import com.supermarket.catalog.domain.product.Product;
-import com.supermarket.catalog.dto.product.*;
+import com.supermarket.catalog.dto.product.CreateProductRequest;
+import com.supermarket.catalog.dto.product.ProductResponse;
+import com.supermarket.catalog.dto.product.StockUpdateRequest;
+import com.supermarket.catalog.dto.product.UpdateProductRequest;
+import com.supermarket.catalog.exception.InvalidInputException;
+import com.supermarket.catalog.exception.ResourceNotFoundException;
 import com.supermarket.catalog.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +24,15 @@ public class ProductController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UUID create(@RequestBody @Valid CreateProductRequest request) {
+    public UUID create(@RequestBody @Valid CreateProductRequest request)
+            throws InvalidInputException {
+
         return productService.createProduct(request);
     }
 
     @GetMapping("/{id}")
-    public ProductResponse get(@PathVariable UUID id) {
+    public ProductResponse get(@PathVariable UUID id)
+            throws ResourceNotFoundException {
 
         Product p = productService.getProduct(id);
 
@@ -43,7 +51,8 @@ public class ProductController {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@PathVariable UUID id,
-                       @RequestBody @Valid UpdateProductRequest request) {
+                       @RequestBody @Valid UpdateProductRequest request)
+            throws InvalidInputException, ResourceNotFoundException {
 
         productService.updateProduct(id, request);
     }
@@ -51,7 +60,8 @@ public class ProductController {
     @PostMapping("/{id}/stock/increase")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void increase(@PathVariable UUID id,
-                         @RequestBody @Valid StockUpdateRequest request) {
+                         @RequestBody @Valid StockUpdateRequest request)
+            throws InvalidInputException, ResourceNotFoundException {
 
         productService.increaseStock(id, request);
     }
@@ -59,14 +69,17 @@ public class ProductController {
     @PostMapping("/{id}/stock/decrease")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void decrease(@PathVariable UUID id,
-                         @RequestBody @Valid StockUpdateRequest request) {
+                         @RequestBody @Valid StockUpdateRequest request)
+            throws InvalidInputException, ResourceNotFoundException {
 
         productService.decreaseStock(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable UUID id)
+            throws ResourceNotFoundException {
+
         productService.deleteProduct(id);
     }
 }
