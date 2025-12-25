@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final Clock clock;
 
     // ===== CREATE =====
     @Override
@@ -31,13 +33,18 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException("Username already exists");
         }
 
-        User user = new User(
-                UUID.randomUUID(),
-                request.username(),
-                request.password(),
-                request.email(),
-                Instant.now()
-        );
+        if (userRepository.existsByEmail(request.email())) {
+            log.warn("Attempt to create duplicate email: {}", request.email());
+            throw new ConflictException("Email already exists");
+        }
+
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .username(request.username())
+                .password(request.password())
+                .email(request.email())
+                .insertionTime(Instant.now(clock))
+                .build();
 
         userRepository.save(user);
         log.info("User created: {}", user.getId());
@@ -50,7 +57,7 @@ public class UserServiceImpl implements UserService {
     public User getUser(UUID userId)
             throws EntityNotFoundException {
 
-        log.info("Get user request {}", userId);
+        log.info("Fetching user {}", userId);
 
         return userRepository.findById(userId)
                 .orElseThrow(() ->
@@ -63,20 +70,20 @@ public class UserServiceImpl implements UserService {
     public UUID updateUser(UUID userId, UpdateUserRequest request)
             throws ConflictException, EntityNotFoundException {
 
-        User user = getUser(userId);
+        User existing = getUser(userId);
 
-        if (!user.getUsername().equals(request.username())
+        if (!existing.getUsername().equals(request.username())
                 && userRepository.existsByUsername(request.username())) {
             throw new ConflictException("Username already exists");
         }
 
-        User updated = new User(
-                user.getId(),
-                request.username(),
-                request.password(),
-                request.email(),
-                user.getJoinedAt()
-        );
+        User updated = User.builder()
+                .id(existing.getId())
+                .username(request.username())
+                .password(request.password())
+                .email(request.email())
+                .insertionTime(Instant.now(clock))
+                .build();
 
         userRepository.save(updated);
         log.info("User updated: {}", userId);

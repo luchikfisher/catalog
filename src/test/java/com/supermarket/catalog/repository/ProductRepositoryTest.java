@@ -2,44 +2,55 @@ package com.supermarket.catalog.repository;
 
 import com.supermarket.catalog.domain.product.Category;
 import com.supermarket.catalog.domain.product.Product;
+import com.supermarket.catalog.testconfig.BaseJpaPostgresTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class ProductRepositoryTest {
+class ProductRepositoryTest extends BaseJpaPostgresTest {
 
     @Autowired
     private ProductRepository productRepository;
 
     @Test
     void saveAndFindProduct() {
-        Product product = new Product(
-                UUID.randomUUID(),
-                "Milk",
-                Category.DAIRY,
-                BigDecimal.valueOf(5.90),
-                0,
-                "Local Supplier",
-                "Fresh milk",
-                Instant.now()
-        );
+
+        UUID productId = UUID.randomUUID();
+        Instant insertionTime = Instant.parse("2024-01-01T00:00:00Z");
+
+        Product product = Product.builder()
+                .id(productId)
+                .name("Milk")
+                .category(Category.DAIRY)
+                .price(BigDecimal.valueOf(5.90))
+                .stockQuantity(0)
+                .supplier("Local Supplier")
+                .description("Fresh milk")
+                .insertionTime(insertionTime)
+                .build();
 
         productRepository.save(product);
 
-        var found = productRepository.findById(product.getId());
+        Optional<Product> found = productRepository.findById(product.getId());
 
-        assertThat(found).isPresent();
-        assertThat(found.get().getName()).isEqualTo("Milk");
+        assertThat(found)
+                .isPresent()
+                .get()
+                .satisfies(p -> {
+                    assertThat(p.getId()).isEqualTo(productId);
+                    assertThat(p.getName()).isEqualTo("Milk");
+                    assertThat(p.getCategory()).isEqualTo(Category.DAIRY);
+                    assertThat(p.getPrice()).isEqualByComparingTo("5.90");
+                    assertThat(p.getStockQuantity()).isZero();
+                    assertThat(p.getSupplier()).isEqualTo("Local Supplier");
+                    assertThat(p.getDescription()).isEqualTo("Fresh milk");
+                    assertThat(p.getInsertionTime()).isEqualTo(insertionTime);
+                });
     }
 }

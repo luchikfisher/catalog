@@ -11,8 +11,7 @@ import java.util.UUID;
 
 public interface ProductService {
 
-    UUID createProduct(CreateProductRequest request)
-            throws InvalidInputException;
+    UUID createProduct(CreateProductRequest request) throws InvalidInputException;
 
     Product getProduct(UUID productId)
             throws EntityNotFoundException;

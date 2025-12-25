@@ -14,5 +14,5 @@ public record ProductResponse(
         int stockQuantity,
         String supplier,
         String description,
-        Instant createdAt
+        Instant insertionTime
 ) {}

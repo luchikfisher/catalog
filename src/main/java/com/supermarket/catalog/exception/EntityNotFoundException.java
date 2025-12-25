@@ -1,6 +1,6 @@
 package com.supermarket.catalog.exception;
 
-public class EntityNotFoundException extends ApplicationException {
+public class EntityNotFoundException extends Exception {
 
     public EntityNotFoundException(String message) {
         super(message);

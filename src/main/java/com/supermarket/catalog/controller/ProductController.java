@@ -44,42 +44,42 @@ public class ProductController {
                 p.getStockQuantity(),
                 p.getSupplier(),
                 p.getDescription(),
-                p.getCreatedAt()
+                p.getInsertionTime()
         );
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(@PathVariable UUID id,
+    public UUID update(@PathVariable UUID id,
                        @RequestBody @Valid UpdateProductRequest request)
             throws InvalidInputException, EntityNotFoundException {
 
-        productService.updateProduct(id, request);
+       return productService.updateProduct(id, request);
     }
 
     @PostMapping("/{id}/stock/increase")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void increase(@PathVariable UUID id,
+    public UUID increase(@PathVariable UUID id,
                          @RequestBody @Valid StockUpdateRequest request)
             throws InvalidInputException, EntityNotFoundException {
 
-        productService.increaseStock(id, request);
+       return productService.increaseStock(id, request);
     }
 
     @PostMapping("/{id}/stock/decrease")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void decrease(@PathVariable UUID id,
+    public UUID decrease(@PathVariable UUID id,
                          @RequestBody @Valid StockUpdateRequest request)
             throws InvalidInputException, EntityNotFoundException {
 
-        productService.decreaseStock(id, request);
+       return productService.decreaseStock(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id)
+    public UUID delete(@PathVariable UUID id)
             throws EntityNotFoundException {
 
-        productService.deleteProduct(id);
+       return productService.deleteProduct(id);
     }
 }

@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -24,32 +24,38 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final Clock clock;
 
     // ===== CREATE =====
     @Override
     public UUID createProduct(CreateProductRequest request)
             throws InvalidInputException {
 
-        validatePrice(request.price());
+        if (request.price() == null || request.price().signum() <= 0) {
+            throw new InvalidInputException("Product price must be positive");
+        }
 
-        int quantity = request.initialQuantity() == null ? 0 : request.initialQuantity();
-        if (quantity < 0) {
+        if (request.initialQuantity() != null && request.initialQuantity() < 0) {
             throw new InvalidInputException("Initial quantity cannot be negative");
         }
 
-        Product product = new Product(
-                UUID.randomUUID(),
-                request.name(),
-                request.category(),
-                request.price(),
-                quantity,
-                request.supplier(),
-                request.description(),
-                Instant.now()
-        );
+        Product product = Product.builder()
+                .id(UUID.randomUUID())
+                .name(request.name())
+                .category(request.category())
+                .price(request.price())
+                .stockQuantity(
+                        request.initialQuantity() != null
+                                ? request.initialQuantity()
+                                : 0
+                )
+                .supplier(request.supplier())
+                .description(request.description())
+                .insertionTime(Instant.now(clock))
+                .build();
 
         productRepository.save(product);
-        log.info("Product created: {} with initial quantity {}", product.getId(), quantity);
+        log.info("Product created: {} with initial quantity {}", product.getId(), product.getStockQuantity());
 
         return product.getId();
     }
@@ -69,22 +75,20 @@ public class ProductServiceImpl implements ProductService {
     // ===== UPDATE PRODUCT =====
     @Override
     public UUID updateProduct(UUID productId, UpdateProductRequest request)
-            throws InvalidInputException, EntityNotFoundException {
-
-        validatePrice(request.price());
+            throws EntityNotFoundException {
 
         Product existing = getProduct(productId);
 
-        Product updated = new Product(
-                existing.getId(),
-                request.name(),
-                request.category(),
-                request.price(),
-                existing.getStockQuantity(),
-                request.supplier(),
-                request.description(),
-                existing.getCreatedAt()
-        );
+        Product updated = Product.builder()
+                .id(existing.getId())
+                .name(request.name())
+                .category(request.category())
+                .price(request.price())
+                .stockQuantity(existing.getStockQuantity())
+                .supplier(request.supplier())
+                .description(request.description())
+                .insertionTime(Instant.now(clock))
+                .build();
 
         productRepository.save(updated);
         log.info("Product updated: {}", productId);
@@ -95,22 +99,20 @@ public class ProductServiceImpl implements ProductService {
     // ===== INCREASE STOCK =====
     @Override
     public UUID increaseStock(UUID productId, StockUpdateRequest request)
-            throws InvalidInputException, EntityNotFoundException {
-
-        validateStockAmount(request.amount());
+            throws EntityNotFoundException {
 
         Product product = getProduct(productId);
 
-        Product updated = new Product(
-                product.getId(),
-                product.getName(),
-                product.getCategory(),
-                product.getPrice(),
-                product.getStockQuantity() + request.amount(),
-                product.getSupplier(),
-                product.getDescription(),
-                product.getCreatedAt()
-        );
+        Product updated = Product.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .category(product.getCategory())
+                .price(product.getPrice())
+                .stockQuantity(product.getStockQuantity() + request.amount())
+                .supplier(product.getSupplier())
+                .description(product.getDescription())
+                .insertionTime(product.getInsertionTime())
+                .build();
 
         productRepository.save(updated);
         log.info("Stock increased for product {} by {}", productId, request.amount());
@@ -123,25 +125,24 @@ public class ProductServiceImpl implements ProductService {
     public UUID decreaseStock(UUID productId, StockUpdateRequest request)
             throws InvalidInputException, EntityNotFoundException {
 
-        validateStockAmount(request.amount());
-
         Product product = getProduct(productId);
 
         int newStock = product.getStockQuantity() - request.amount();
         if (newStock < 0) {
+            log.warn("Attempt to reduce stock zero for product {}", productId);
             throw new InvalidInputException("Stock cannot be negative");
         }
 
-        Product updated = new Product(
-                product.getId(),
-                product.getName(),
-                product.getCategory(),
-                product.getPrice(),
-                newStock,
-                product.getSupplier(),
-                product.getDescription(),
-                product.getCreatedAt()
-        );
+        Product updated = Product.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .category(product.getCategory())
+                .price(product.getPrice())
+                .stockQuantity(newStock)
+                .supplier(product.getSupplier())
+                .description(product.getDescription())
+                .insertionTime(product.getInsertionTime())
+                .build();
 
         productRepository.save(updated);
         log.info("Stock decreased for product {} by {}", productId, request.amount());
@@ -162,22 +163,5 @@ public class ProductServiceImpl implements ProductService {
         log.info("Product deleted: {}", productId);
 
         return productId;
-    }
-
-    // ===== VALIDATION =====
-    private void validatePrice(BigDecimal price)
-            throws InvalidInputException {
-
-        if (price == null || price.signum() <= 0) {
-            throw new InvalidInputException("Price must be positive");
-        }
-    }
-
-    private void validateStockAmount(int amount)
-            throws InvalidInputException {
-
-        if (amount <= 0) {
-            throw new InvalidInputException("Stock amount must be positive");
-        }
     }
 }

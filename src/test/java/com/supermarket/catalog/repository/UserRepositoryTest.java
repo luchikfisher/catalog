@@ -1,57 +1,69 @@
 package com.supermarket.catalog.repository;
 
 import com.supermarket.catalog.domain.user.User;
+import com.supermarket.catalog.testconfig.BaseJpaPostgresTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class UserRepositoryTest {
+class UserRepositoryTest extends BaseJpaPostgresTest {
 
     @Autowired
     private UserRepository userRepository;
 
     @Test
     void saveAndFindUserById() {
-        User user = new User(
-                UUID.randomUUID(),
-                "john_doe",
-                "secret",
-                "john@example.com",
-                Instant.now()
-        );
+
+        UUID userId = UUID.randomUUID();
+        Instant insertionTime = Instant.parse("2024-01-01T00:00:00Z");
+
+        User user = User.builder()
+                .id(userId)
+                .username("john_doe")
+                .password("secret")
+                .email("john@example.com")
+                .insertionTime(insertionTime)
+                .build();
 
         userRepository.save(user);
 
-        var found = userRepository.findById(user.getId());
+        Optional<User> found = userRepository.findById(user.getId());
 
-        assertThat(found).isPresent();
-        assertThat(found.get().getUsername()).isEqualTo("john_doe");
+        assertThat(found)
+                .isPresent()
+                .get()
+                .satisfies(u -> {
+                    assertThat(u.getId()).isEqualTo(userId);
+                    assertThat(u.getUsername()).isEqualTo("john_doe");
+                    assertThat(u.getPassword()).isEqualTo("secret");
+                    assertThat(u.getEmail()).isEqualTo("john@example.com");
+                    assertThat(u.getInsertionTime()).isEqualTo(insertionTime);
+                });
     }
 
     @Test
-    void existsByUsername_returnsTrueWhenUserExists() {
-        User user = new User(
-                UUID.randomUUID(),
-                "unique_user",
-                "password",
-                "user@example.com",
-                Instant.now()
-        );
+    void existsByUsername_returnsTrueWhenExists() {
+        // given
+        UUID userId = UUID.randomUUID();
+        Instant insertionTime = Instant.parse("2024-01-01T00:00:00Z");
 
+        User user = User.builder()
+                .id(userId)
+                .username("unique_user")
+                .password("password")
+                .email("user@example.com")
+                .insertionTime(insertionTime)
+                .build();
+
+        // when
         userRepository.save(user);
 
-        boolean exists = userRepository.existsByUsername("unique_user");
-
-        assertThat(exists).isTrue();
+        // then
+        assertThat(userRepository.existsByUsername("unique_user")).isTrue();
     }
 }

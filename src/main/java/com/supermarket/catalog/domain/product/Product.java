@@ -1,10 +1,7 @@
 package com.supermarket.catalog.domain.product;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -39,6 +36,6 @@ public class Product {
 
     private String description;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    @Column(name = "insertion_time", nullable = false)
+    private Instant insertionTime;
 }

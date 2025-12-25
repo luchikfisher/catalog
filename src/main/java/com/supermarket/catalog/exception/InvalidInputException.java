@@ -1,6 +1,6 @@
 package com.supermarket.catalog.exception;
 
-public class InvalidInputException extends ApplicationException {
+public class InvalidInputException extends Exception {
 
     public InvalidInputException(String message) {
         super(message);

@@ -38,24 +38,24 @@ public class UserController {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getJoinedAt()
+                user.getInsertionTime()
         );
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(@PathVariable UUID id,
+    public UUID update(@PathVariable UUID id,
                        @RequestBody @Valid UpdateUserRequest request)
             throws ConflictException, EntityNotFoundException {
 
-        userService.updateUser(id, request);
+        return userService.updateUser(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id)
+    public UUID delete(@PathVariable UUID id)
             throws EntityNotFoundException {
 
-        userService.deleteUser(id);
+        return userService.deleteUser(id);
     }
 }

@@ -23,8 +23,7 @@ public class HeaderUserValidator implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
-                             Object handler)
-            throws UnauthorizedException {
+                             Object handler) throws UnauthorizedException {
 
         String username = request.getHeader(USERNAME_HEADER);
         String userId = request.getHeader(USER_ID_HEADER);
@@ -33,15 +32,9 @@ public class HeaderUserValidator implements HandlerInterceptor {
             throw new UnauthorizedException("Missing authentication headers");
         }
 
-        UUID id;
-        try {
-            id = UUID.fromString(userId);
-        } catch (IllegalArgumentException e) {
-            throw new UnauthorizedException("Invalid user ID format");
-        }
-
-        userRepository.findById(id)
-                .filter(u -> u.getUsername().equals(username))
+        userRepository.findById(
+                        UUID.fromString(userId)
+                ).filter(u -> u.getUsername().equals(username))
                 .orElseThrow(() ->
                         new UnauthorizedException("Invalid username or user ID")
                 );

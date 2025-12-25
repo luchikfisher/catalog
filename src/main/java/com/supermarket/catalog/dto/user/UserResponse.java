@@ -7,5 +7,5 @@ public record UserResponse(
         UUID id,
         String username,
         String email,
-        Instant joinedAt
+        Instant insertionTime
 ) {}

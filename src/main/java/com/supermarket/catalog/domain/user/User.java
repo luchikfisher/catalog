@@ -1,9 +1,7 @@
 package com.supermarket.catalog.domain.user;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -13,6 +11,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -27,6 +26,6 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @Column(name = "joined_at", nullable = false)
-    private Instant joinedAt;
+    @Column(name = "insertion_time", nullable = false)
+    private Instant insertionTime;
 }
