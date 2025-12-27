@@ -38,6 +38,8 @@ public class UserController {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
+                user.getStore().getId(),
+                user.getStore().getName(),
                 user.getInsertionTime()
         );
     }

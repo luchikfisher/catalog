@@ -53,7 +53,8 @@ class UserControllerTest {
         CreateUserRequest request = new CreateUserRequest(
                 "john_doe",
                 "secret",
-                "john@example.com"
+                "john@example.com",
+                "Downtown"
         );
 
         mockMvc.perform(post("/users")
@@ -69,7 +70,8 @@ class UserControllerTest {
         CreateUserRequest request = new CreateUserRequest(
                 "john",
                 "pass",
-                "not-an-email"
+                "not-an-email",
+                "Downtown"
         );
 
         mockMvc.perform(post("/users")
