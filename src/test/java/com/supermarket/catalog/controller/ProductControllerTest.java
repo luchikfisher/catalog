@@ -2,7 +2,6 @@ package com.supermarket.catalog.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supermarket.catalog.domain.product.Category;
-import com.supermarket.catalog.domain.store.Store;
 import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.dto.product.CreateProductRequest;
 import com.supermarket.catalog.dto.product.StockUpdateRequest;
@@ -17,13 +16,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -49,22 +46,21 @@ class ProductControllerTest {
                 .preHandle(any(), any(), any());
     }
 
-
     @Test
     void createProduct_returns201() throws Exception {
 
-        User user = buildUser();
+        User user = mock(User.class);
         UUID productId = UUID.randomUUID();
         when(productService.createProduct(eq(user), any())).thenReturn(productId);
 
-        CreateProductRequest request = new CreateProductRequest(
-                "Milk",
-                Category.DAIRY,
-                BigDecimal.valueOf(5.5),
-                "Local Supplier",
-                3,
-                "Fresh milk"
-        );
+        CreateProductRequest request = CreateProductRequest.builder()
+                .name("Milk")
+                .category(Category.DAIRY)
+                .price(BigDecimal.valueOf(5.5))
+                .supplier("Local Supplier")
+                .initialQuantity(3)
+                .description("Fresh milk")
+                .build();
 
         mockMvc.perform(post("/products")
                         .requestAttr("authenticatedUser", user)
@@ -77,15 +73,16 @@ class ProductControllerTest {
     @Test
     void createProduct_withInvalidBody_returns400() throws Exception {
 
-        User user = buildUser();
-        CreateProductRequest request = new CreateProductRequest(
-                "",
-                null,
-                BigDecimal.valueOf(-1),
-                "",
-                null,
-                null
-        );
+        User user = mock(User.class);
+
+        CreateProductRequest request = CreateProductRequest.builder()
+                .name("")
+                .category(null)
+                .price(BigDecimal.valueOf(-1))
+                .supplier("")
+                .initialQuantity(null)
+                .description(null)
+                .build();
 
         mockMvc.perform(post("/products")
                         .requestAttr("authenticatedUser", user)
@@ -97,12 +94,14 @@ class ProductControllerTest {
     @Test
     void increaseStock_returns204() throws Exception {
 
-        User user = buildUser();
+        User user = mock(User.class);
         UUID productId = UUID.randomUUID();
         when(productService.increaseStock(eq(user), eq(productId), any()))
                 .thenReturn(productId);
 
-        StockUpdateRequest request = new StockUpdateRequest(5);
+        StockUpdateRequest request = StockUpdateRequest.builder()
+                .amount(5)
+                .build();
 
         mockMvc.perform(post("/products/{id}/stock/increase", productId)
                         .requestAttr("authenticatedUser", user)
@@ -114,12 +113,14 @@ class ProductControllerTest {
     @Test
     void decreaseStock_returns204() throws Exception {
 
-        User user = buildUser();
+        User user = mock(User.class);
         UUID productId = UUID.randomUUID();
         when(productService.decreaseStock(eq(user), eq(productId), any()))
                 .thenReturn(productId);
 
-        StockUpdateRequest request = new StockUpdateRequest(2);
+        StockUpdateRequest request = StockUpdateRequest.builder()
+                .amount(2)
+                .build();
 
         mockMvc.perform(post("/products/{id}/stock/decrease", productId)
                         .requestAttr("authenticatedUser", user)
@@ -131,7 +132,7 @@ class ProductControllerTest {
     @Test
     void deleteProduct_returns204() throws Exception {
 
-        User user = buildUser();
+        User user = mock(User.class);
         UUID productId = UUID.randomUUID();
         when(productService.deleteProduct(eq(user), eq(productId)))
                 .thenReturn(productId);
@@ -139,22 +140,5 @@ class ProductControllerTest {
         mockMvc.perform(delete("/products/{id}", productId)
                         .requestAttr("authenticatedUser", user))
                 .andExpect(status().isNoContent());
-    }
-
-    private User buildUser() {
-        Store store = Store.builder()
-                .id(UUID.randomUUID())
-                .name("Downtown")
-                .insertionTime(Instant.parse("2024-01-01T00:00:00Z"))
-                .build();
-
-        return User.builder()
-                .id(UUID.randomUUID())
-                .username("user")
-                .password("pass")
-                .email("user@example.com")
-                .store(store)
-                .insertionTime(Instant.parse("2024-01-02T00:00:00Z"))
-                .build();
     }
 }

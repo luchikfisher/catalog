@@ -34,14 +34,15 @@ public class UserController {
             throws EntityNotFoundException {
 
         User user = userService.getUser(id);
-        return new UserResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getStore().getId(),
-                user.getStore().getName(),
-                user.getInsertionTime()
-        );
+
+        return UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .storeId(user.getStore().getId())
+                .storeName(user.getStore().getName())
+                .insertionTime(user.getInsertionTime())
+                .build();
     }
 
     @PutMapping("/{id}")

@@ -40,18 +40,18 @@ public class ProductController {
 
         Product p = productService.getProduct(user, id);
 
-        return new ProductResponse(
-                p.getId(),
-                p.getName(),
-                p.getCategory(),
-                p.getPrice(),
-                p.getStockQuantity(),
-                p.getSupplier(),
-                p.getDescription(),
-                p.getStore().getId(),
-                p.getStore().getName(),
-                p.getInsertionTime()
-        );
+        return ProductResponse.builder()
+                .id(p.getId())
+                .name(p.getName())
+                .category(p.getCategory())
+                .price(p.getPrice())
+                .stockQuantity(p.getStockQuantity())
+                .supplier(p.getSupplier())
+                .description(p.getDescription())
+                .storeId(p.getStore().getId())
+                .storeName(p.getStore().getName())
+                .insertionTime(p.getInsertionTime())
+                .build();
     }
 
     @PutMapping("/{id}")

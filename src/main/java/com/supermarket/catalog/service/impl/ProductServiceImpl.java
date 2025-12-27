@@ -34,13 +34,6 @@ public class ProductServiceImpl implements ProductService {
     public UUID createProduct(User user, CreateProductRequest request)
             throws InvalidInputException, UnauthorizedException {
 
-        if (request.price() == null || request.price().signum() <= 0) {
-            throw new InvalidInputException("Product price must be positive");
-        }
-
-        if (request.initialQuantity() != null && request.initialQuantity() < 0) {
-            throw new InvalidInputException("Initial quantity cannot be negative");
-        }
 
         Product product = Product.builder()
                 .id(UUID.randomUUID())

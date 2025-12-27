@@ -50,12 +50,12 @@ class UserControllerTest {
         UUID userId = UUID.randomUUID();
         when(userService.createUser(any())).thenReturn(userId);
 
-        CreateUserRequest request = new CreateUserRequest(
-                "john_doe",
-                "secret",
-                "john@example.com",
-                "Downtown"
-        );
+        CreateUserRequest request = CreateUserRequest.builder()
+                .username("john_doe")
+                .password("secret")
+                .email("john@example.com")
+                .storeName("Downtown")
+                .build();
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -67,12 +67,12 @@ class UserControllerTest {
     @Test
     void createUser_withInvalidEmail_returns400() throws Exception {
 
-        CreateUserRequest request = new CreateUserRequest(
-                "john",
-                "pass",
-                "not-an-email",
-                "Downtown"
-        );
+        CreateUserRequest request = CreateUserRequest.builder()
+                .username("john")
+                .password("pass")
+                .email("not-an-email")
+                .storeName("Downtown")
+                .build();
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -87,11 +87,11 @@ class UserControllerTest {
         when(userService.updateUser(eq(userId), any()))
                 .thenReturn(userId);
 
-        UpdateUserRequest request = new UpdateUserRequest(
-                "new_username",
-                "new_password",
-                "new@mail.com"
-        );
+        UpdateUserRequest request = UpdateUserRequest.builder()
+                .username("new_username")
+                .password("new_password")
+                .email("new@mail.com")
+                .build();
 
         mockMvc.perform(put("/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
