@@ -2,7 +2,7 @@ package com.supermarket.catalog.repository;
 
 import com.supermarket.catalog.domain.product.Category;
 import com.supermarket.catalog.domain.product.Product;
-import com.supermarket.catalog.testconfig.BaseJpaPostgresTest;
+import com.supermarket.catalog.testinfra.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,7 +13,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ProductRepositoryTest extends BaseJpaPostgresTest {
+class ProductRepositoryTest extends BaseIntegrationTest {
 
     @Autowired
     private ProductRepository productRepository;

@@ -1,7 +1,7 @@
 package com.supermarket.catalog.repository;
 
 import com.supermarket.catalog.domain.user.User;
-import com.supermarket.catalog.testconfig.BaseJpaPostgresTest;
+import com.supermarket.catalog.testinfra.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class UserRepositoryTest extends BaseJpaPostgresTest {
+class UserRepositoryTest extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
