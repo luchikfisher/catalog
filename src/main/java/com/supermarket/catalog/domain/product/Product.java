@@ -1,5 +1,6 @@
 package com.supermarket.catalog.domain.product;
 
+import com.supermarket.catalog.domain.store.Store;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,6 +36,10 @@ public class Product {
     private String supplier;
 
     private String description;
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
 
     @Column(name = "insertion_time", nullable = false)
     private Instant insertionTime;

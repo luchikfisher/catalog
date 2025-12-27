@@ -1,5 +1,6 @@
 package com.supermarket.catalog.domain.user;
 
+import com.supermarket.catalog.domain.store.Store;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +26,10 @@ public class User {
 
     @Column(nullable = false)
     private String email;
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
 
     @Column(name = "insertion_time", nullable = false)
     private Instant insertionTime;

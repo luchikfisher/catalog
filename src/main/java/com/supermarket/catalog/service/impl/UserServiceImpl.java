@@ -1,10 +1,12 @@
 package com.supermarket.catalog.service.impl;
 
+import com.supermarket.catalog.domain.store.Store;
 import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.dto.user.CreateUserRequest;
 import com.supermarket.catalog.dto.user.UpdateUserRequest;
 import com.supermarket.catalog.exception.ConflictException;
 import com.supermarket.catalog.exception.EntityNotFoundException;
+import com.supermarket.catalog.repository.StoreRepository;
 import com.supermarket.catalog.repository.UserRepository;
 import com.supermarket.catalog.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +23,15 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
     private final Clock clock;
 
     // ===== CREATE =====
     @Override
     public UUID createUser(CreateUserRequest request)
             throws ConflictException {
+
+        String storeName = request.storeName().trim();
 
         if (userRepository.existsByUsername(request.username())) {
             log.warn("Attempt to create duplicate username: {}", request.username());
@@ -38,11 +43,23 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException("Email already exists");
         }
 
+        Store store = storeRepository.findByName(storeName)
+                .orElseGet(() -> {
+                    Store newStore = Store.builder()
+                            .id(UUID.randomUUID())
+                            .name(storeName)
+                            .insertionTime(Instant.now(clock))
+                            .build();
+
+                    return storeRepository.save(newStore);
+                });
+
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .username(request.username())
                 .password(request.password())
                 .email(request.email())
+                .store(store)
                 .insertionTime(Instant.now(clock))
                 .build();
 
@@ -82,6 +99,7 @@ public class UserServiceImpl implements UserService {
                 .username(request.username())
                 .password(request.password())
                 .email(request.email())
+                .store(existing.getStore())
                 .insertionTime(Instant.now(clock))
                 .build();
 

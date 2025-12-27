@@ -1,5 +1,6 @@
 package com.supermarket.catalog.validation;
 
+import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.exception.UnauthorizedException;
 import com.supermarket.catalog.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,12 +33,14 @@ public class HeaderUserValidator implements HandlerInterceptor {
             throw new UnauthorizedException("Missing authentication headers");
         }
 
-        userRepository.findById(
+        User user = userRepository.findById(
                         UUID.fromString(userId)
                 ).filter(u -> u.getUsername().equals(username))
                 .orElseThrow(() ->
                         new UnauthorizedException("Invalid username or user ID")
                 );
+
+        request.setAttribute("authenticatedUser", user);
 
         return true;
     }

@@ -1,11 +1,14 @@
 package com.supermarket.catalog.service.impl;
 
 import com.supermarket.catalog.domain.product.Product;
+import com.supermarket.catalog.domain.store.Store;
+import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.dto.product.CreateProductRequest;
 import com.supermarket.catalog.dto.product.UpdateProductRequest;
 import com.supermarket.catalog.dto.product.StockUpdateRequest;
 import com.supermarket.catalog.exception.InvalidInputException;
 import com.supermarket.catalog.exception.EntityNotFoundException;
+import com.supermarket.catalog.exception.UnauthorizedException;
 import com.supermarket.catalog.repository.ProductRepository;
 import com.supermarket.catalog.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +31,8 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== CREATE =====
     @Override
-    public UUID createProduct(CreateProductRequest request)
-            throws InvalidInputException {
+    public UUID createProduct(User user, CreateProductRequest request)
+            throws InvalidInputException, UnauthorizedException {
 
         if (request.price() == null || request.price().signum() <= 0) {
             throw new InvalidInputException("Product price must be positive");
@@ -51,6 +54,7 @@ public class ProductServiceImpl implements ProductService {
                 )
                 .supplier(request.supplier())
                 .description(request.description())
+                .store(getStoreForUser(user))
                 .insertionTime(Instant.now(clock))
                 .build();
 
@@ -63,21 +67,25 @@ public class ProductServiceImpl implements ProductService {
     // ===== READ =====
     @Override
     @Transactional(readOnly = true)
-    public Product getProduct(UUID productId)
-            throws EntityNotFoundException {
+    public Product getProduct(User user, UUID productId)
+            throws EntityNotFoundException, UnauthorizedException {
 
-        return productRepository.findById(productId)
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Product not found: " + productId)
                 );
+
+        validateStoreAccess(user, product);
+
+        return product;
     }
 
     // ===== UPDATE PRODUCT =====
     @Override
-    public UUID updateProduct(UUID productId, UpdateProductRequest request)
-            throws EntityNotFoundException {
+    public UUID updateProduct(User user, UUID productId, UpdateProductRequest request)
+            throws EntityNotFoundException, UnauthorizedException {
 
-        Product existing = getProduct(productId);
+        Product existing = getProduct(user, productId);
 
         Product updated = Product.builder()
                 .id(existing.getId())
@@ -87,6 +95,7 @@ public class ProductServiceImpl implements ProductService {
                 .stockQuantity(existing.getStockQuantity())
                 .supplier(request.supplier())
                 .description(request.description())
+                .store(existing.getStore())
                 .insertionTime(Instant.now(clock))
                 .build();
 
@@ -98,10 +107,10 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== INCREASE STOCK =====
     @Override
-    public UUID increaseStock(UUID productId, StockUpdateRequest request)
-            throws EntityNotFoundException {
+    public UUID increaseStock(User user, UUID productId, StockUpdateRequest request)
+            throws EntityNotFoundException, UnauthorizedException {
 
-        Product product = getProduct(productId);
+        Product product = getProduct(user, productId);
 
         Product updated = Product.builder()
                 .id(product.getId())
@@ -111,6 +120,7 @@ public class ProductServiceImpl implements ProductService {
                 .stockQuantity(product.getStockQuantity() + request.amount())
                 .supplier(product.getSupplier())
                 .description(product.getDescription())
+                .store(product.getStore())
                 .insertionTime(product.getInsertionTime())
                 .build();
 
@@ -122,10 +132,10 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== DECREASE STOCK =====
     @Override
-    public UUID decreaseStock(UUID productId, StockUpdateRequest request)
-            throws InvalidInputException, EntityNotFoundException {
+    public UUID decreaseStock(User user, UUID productId, StockUpdateRequest request)
+            throws InvalidInputException, EntityNotFoundException, UnauthorizedException {
 
-        Product product = getProduct(productId);
+        Product product = getProduct(user, productId);
 
         int newStock = product.getStockQuantity() - request.amount();
         if (newStock < 0) {
@@ -141,6 +151,7 @@ public class ProductServiceImpl implements ProductService {
                 .stockQuantity(newStock)
                 .supplier(product.getSupplier())
                 .description(product.getDescription())
+                .store(product.getStore())
                 .insertionTime(product.getInsertionTime())
                 .build();
 
@@ -152,16 +163,32 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== DELETE =====
     @Override
-    public UUID deleteProduct(UUID productId)
-            throws EntityNotFoundException {
+    public UUID deleteProduct(User user, UUID productId)
+            throws EntityNotFoundException, UnauthorizedException {
 
-        if (!productRepository.existsById(productId)) {
-            throw new EntityNotFoundException("Product not found: " + productId);
-        }
-
+        getProduct(user, productId);
         productRepository.deleteById(productId);
         log.info("Product deleted: {}", productId);
 
         return productId;
+    }
+
+    private void validateStoreAccess(User user, Product product) throws UnauthorizedException {
+        if (user == null || user.getStore() == null) {
+            throw new UnauthorizedException("User has no store assigned");
+        }
+
+        if (!user.getStore().getId().equals(product.getStore().getId())) {
+            throw new UnauthorizedException("User is not allowed to access this store");
+        }
+    }
+
+    private Store getStoreForUser(User user)
+            throws UnauthorizedException {
+        if (user == null || user.getStore() == null) {
+            throw new UnauthorizedException("User has no store assigned");
+        }
+
+        return user.getStore();
     }
 }

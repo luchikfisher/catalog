@@ -8,5 +8,6 @@ import lombok.Builder;
 public record CreateUserRequest(
         @NotBlank String username,
         @NotBlank String password,
-        @Email @NotBlank String email
+        @Email @NotBlank String email,
+        @NotBlank String storeName
 ) {}

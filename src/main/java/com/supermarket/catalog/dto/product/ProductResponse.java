@@ -14,5 +14,7 @@ public record ProductResponse(
         int stockQuantity,
         String supplier,
         String description,
+        UUID storeId,
+        String storeName,
         Instant insertionTime
 ) {}
