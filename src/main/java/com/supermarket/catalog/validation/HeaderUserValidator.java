@@ -18,6 +18,7 @@ public class HeaderUserValidator implements HandlerInterceptor {
 
     private static final String USERNAME_HEADER = "X-Username";
     private static final String USER_ID_HEADER = "X-User-Id";
+    private static final String STORE_HEADER = "X-Store-Name";
 
     private final UserRepository userRepository;
 
@@ -28,20 +29,23 @@ public class HeaderUserValidator implements HandlerInterceptor {
 
         String username = request.getHeader(USERNAME_HEADER);
         String userId = request.getHeader(USER_ID_HEADER);
+        String storeName = request.getHeader(STORE_HEADER);
 
-        if (Objects.isNull(username) || Objects.isNull(userId)) {
+        if (Objects.isNull(username) || Objects.isNull(userId) || Objects.isNull(storeName)) {
             throw new UnauthorizedException("Missing authentication headers");
         }
 
-        User user = userRepository.findById(
-                        UUID.fromString(userId)
-                ).filter(u -> u.getUsername().equals(username))
+        User user = userRepository.findById(UUID.fromString(userId))
+                .filter(u -> u.getUsername().equals(username))
                 .orElseThrow(() ->
                         new UnauthorizedException("Invalid username or user ID")
                 );
 
-        request.setAttribute("authenticatedUser", user);
+        if (!user.getStore().getName().equals(storeName)) {
+            throw new UnauthorizedException("User is not authorized for this store");
+        }
 
+        request.setAttribute("authenticatedUser", user);
         return true;
     }
 }
