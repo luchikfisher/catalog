@@ -1,5 +1,6 @@
 package com.supermarket.catalog.testinfra;
 
+import lombok.NoArgsConstructor;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 
+@NoArgsConstructor
 public final class PostgresTestContainer {
 
     private static final DockerImageName POSTGRES_IMAGE =
@@ -17,9 +19,6 @@ public final class PostgresTestContainer {
     private static final int POSTGRES_PORT = 15432;
 
     private static PostgreSQLContainer<?> container;
-
-    private PostgresTestContainer() {
-    }
 
     public static synchronized PostgreSQLContainer<?> getInstance() {
         if (container == null) {

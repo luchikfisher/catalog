@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -27,23 +28,20 @@ public class HeaderUserValidator implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws UnauthorizedException {
 
-        String username = request.getHeader(USERNAME_HEADER);
-        String userId = request.getHeader(USER_ID_HEADER);
+        String username  = request.getHeader(USERNAME_HEADER);
+        String userIdRaw = request.getHeader(USER_ID_HEADER);
         String storeName = request.getHeader(STORE_HEADER);
 
-        if (Objects.isNull(username) || Objects.isNull(userId) || Objects.isNull(storeName)) {
-            throw new UnauthorizedException("Missing authentication headers");
-        }
+        Optional.ofNullable(username)
+                .filter(u -> userIdRaw != null && storeName != null)
+                .orElseThrow(() -> new UnauthorizedException("Missing authorization headers"));
 
-        User user = userRepository.findById(UUID.fromString(userId))
+        User user = Optional.of(userIdRaw)
+                .map(UUID::fromString)
+                .flatMap(userRepository::findById)
                 .filter(u -> u.getUsername().equals(username))
-                .orElseThrow(() ->
-                        new UnauthorizedException("Invalid username or user ID")
-                );
-
-        if (!user.getStore().getName().equals(storeName)) {
-            throw new UnauthorizedException("User is not authorized for this store");
-        }
+                .filter(u -> u.getStore().getName().equals(storeName))
+                .orElseThrow(() -> new UnauthorizedException("Unauthorized"));
 
         request.setAttribute("authenticatedUser", user);
         return true;

@@ -5,6 +5,7 @@ import com.supermarket.catalog.domain.product.Category;
 import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.dto.product.CreateProductRequest;
 import com.supermarket.catalog.dto.product.StockUpdateRequest;
+import com.supermarket.catalog.exception.UnauthorizedException;
 import com.supermarket.catalog.service.ProductService;
 import com.supermarket.catalog.validation.HeaderUserValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -141,4 +142,20 @@ class ProductControllerTest {
                         .requestAttr("authenticatedUser", user))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void createProduct_withStoreMismatch_returns401() throws Exception {
+        doThrow(new UnauthorizedException("Store mismatch"))
+                .when(headerUserValidator)
+                .preHandle(any(), any(), any());
+
+        mockMvc.perform(post("/products")
+                        .header("X-User-Id", UUID.randomUUID().toString())
+                        .header("X-Username", "user")
+                        .header("X-Store-Name", "OtherStore")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
 }
