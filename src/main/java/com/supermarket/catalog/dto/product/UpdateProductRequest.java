@@ -13,4 +13,5 @@ public record UpdateProductRequest(
         @NotNull @Positive BigDecimal price,
         @NotBlank String supplier,
         String description
-) {}
+) {
+}

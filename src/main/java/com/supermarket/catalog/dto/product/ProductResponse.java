@@ -19,4 +19,5 @@ public record ProductResponse(
         UUID storeId,
         String storeName,
         Instant insertionTime
-) {}
+) {
+}

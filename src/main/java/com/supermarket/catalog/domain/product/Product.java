@@ -38,7 +38,7 @@ public class Product {
 
     private String description;
 
-    @ManyToOne( optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "store_id", referencedColumnName = "id", nullable = false)
     private Store store;
 

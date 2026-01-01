@@ -17,4 +17,5 @@ public record CreateProductRequest(
         @NotBlank String supplier,
         @PositiveOrZero Integer initialQuantity,
         String description
-) {}
+) {
+}

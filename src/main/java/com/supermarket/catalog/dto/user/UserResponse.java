@@ -13,4 +13,5 @@ public record UserResponse(
         UUID storeId,
         String storeName,
         Instant insertionTime
-) {}
+) {
+}

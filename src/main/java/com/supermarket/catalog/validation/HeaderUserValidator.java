@@ -25,7 +25,7 @@ public class HeaderUserValidator implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws UnauthorizedException {
-        String username  = request.getHeader(USERNAME_HEADER);
+        String username = request.getHeader(USERNAME_HEADER);
         String userId = request.getHeader(USER_ID_HEADER);
         String storeName = request.getHeader(STORE_HEADER);
 

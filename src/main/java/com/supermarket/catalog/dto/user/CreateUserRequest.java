@@ -10,4 +10,5 @@ public record CreateUserRequest(
         @NotBlank String password,
         @Email @NotBlank String email,
         @NotBlank String storeName
-) {}
+) {
+}
