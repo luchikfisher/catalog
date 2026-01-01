@@ -14,7 +14,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(headerUserValidator)
-                .addPathPatterns("/products", "/products/**");
+        registry.addInterceptor(headerUserValidator).addPathPatterns("/products-catalog", "/products-catalog/**");
     }
 }

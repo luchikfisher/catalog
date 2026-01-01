@@ -20,9 +20,9 @@ public class GlobalExceptionHandler {
         return e.getMessage();
     }
 
-    @ExceptionHandler(ConflictException.class)
+    @ExceptionHandler(UserAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public String handleConflict(ConflictException e) {
+    public String handleConflict(UserAlreadyExistsException e) {
         return e.getMessage();
     }
 

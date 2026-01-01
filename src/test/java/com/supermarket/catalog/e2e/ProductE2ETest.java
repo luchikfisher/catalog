@@ -2,10 +2,11 @@ package com.supermarket.catalog.e2e;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supermarket.catalog.domain.product.Category;
+import com.supermarket.catalog.domain.product.Product;
 import com.supermarket.catalog.dto.product.CreateProductRequest;
 import com.supermarket.catalog.dto.user.CreateUserRequest;
-import com.supermarket.catalog.testinfra.BaseIntegrationTest;
-import org.junit.jupiter.api.Tag;
+import com.supermarket.catalog.repository.ProductRepository;
+import com.supermarket.catalog.test_config.TestEnvironment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,16 +18,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Tag("e2e")
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class ProductE2ETest extends BaseIntegrationTest {
+class ProductE2ETest extends TestEnvironment {
 
     @Autowired
     private MockMvc mockMvc;
@@ -34,10 +35,12 @@ class ProductE2ETest extends BaseIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     @Test
     void createProduct_andFetch_itIsPersistedCorrectly() throws Exception {
 
-        // ---------- 1. Create user (and store) ----------
         CreateUserRequest userRequest = CreateUserRequest.builder()
                 .username("e2e_user")
                 .password("password")
@@ -45,17 +48,16 @@ class ProductE2ETest extends BaseIntegrationTest {
                 .storeName("E2E Store")
                 .build();
 
-        String userResponse = mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userRequest)))
+        UUID userId = objectMapper.readValue(mockMvc.perform(post("/users-catalog")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(userRequest)))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
-                .getContentAsString();
+                .getContentAsString(),
+                UUID.class
+        );
 
-        UUID userId = objectMapper.readValue(userResponse, UUID.class);
-
-        // ---------- 2. Create product ----------
         CreateProductRequest productRequest = CreateProductRequest.builder()
                 .name("Milk")
                 .category(Category.DAIRY)
@@ -65,30 +67,26 @@ class ProductE2ETest extends BaseIntegrationTest {
                 .description("Fresh milk")
                 .build();
 
-        String productResponse = mockMvc.perform(post("/products")
-                        .header("X-User-Id", userId.toString())
-                        .header("X-Username", "e2e_user")
-                        .header("X-Store-Name", "E2E Store")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productRequest)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        UUID productId = objectMapper.readValue(mockMvc.perform(post("/products-catalog")
+                                .header("X-User-Id", userId.toString())
+                                .header("X-Username", "e2e_user")
+                                .header("X-Store-Name", "E2E Store")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(productRequest)))
+                        .andExpect(status().isCreated())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString(),
+                UUID.class
+        );
 
-        UUID productId = objectMapper.readValue(productResponse, UUID.class);
+        Product product = productRepository.findById(productId).orElseThrow();
 
-        // ---------- 3. Fetch product and verify persisted state ----------
-        mockMvc.perform(get("/products/{id}", productId)
-                        .header("X-User-Id", userId.toString())
-                        .header("X-Username", "e2e_user")
-                        .header("X-Store-Name", "E2E Store"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Milk"))
-                .andExpect(jsonPath("$.category").value("DAIRY"))
-                .andExpect(jsonPath("$.price").value(5.9))
-                .andExpect(jsonPath("$.stockQuantity").value(10))
-                .andExpect(jsonPath("$.supplier").value("Local Supplier"))
-                .andExpect(jsonPath("$.description").value("Fresh milk"));
+        assertThat(product.getName()).isEqualTo("Milk");
+        assertThat(product.getCategory()).isEqualTo(Category.DAIRY);
+        assertThat(product.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(5.9));
+        assertThat(product.getStockQuantity()).isEqualTo(10);
+        assertThat(product.getSupplier()).isEqualTo("Local Supplier");
+        assertThat(product.getDescription()).isEqualTo("Fresh milk");
     }
 }

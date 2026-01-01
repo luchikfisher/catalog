@@ -5,6 +5,7 @@ import com.supermarket.catalog.dto.user.CreateUserRequest;
 import com.supermarket.catalog.dto.user.UpdateUserRequest;
 import com.supermarket.catalog.service.UserService;
 import com.supermarket.catalog.validation.HeaderUserValidator;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,7 @@ class UserControllerTest {
                 .storeName("Downtown")
                 .build();
 
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/users-catalog")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -74,7 +75,7 @@ class UserControllerTest {
                 .storeName("Downtown")
                 .build();
 
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/users-catalog")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -93,7 +94,7 @@ class UserControllerTest {
                 .email("new@mail.com")
                 .build();
 
-        mockMvc.perform(put("/users/{id}", userId)
+        mockMvc.perform(put("/users-catalog/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
@@ -105,7 +106,7 @@ class UserControllerTest {
         UUID userId = UUID.randomUUID();
         when(userService.deleteUser(userId)).thenReturn(userId);
 
-        mockMvc.perform(delete("/users/{id}", userId))
+        mockMvc.perform(delete("/users-catalog/{id}", userId))
                 .andExpect(status().isNoContent());
     }
 }

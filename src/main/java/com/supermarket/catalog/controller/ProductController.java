@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/products-catalog")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -26,70 +26,39 @@ public class ProductController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UUID create(@RequestAttribute("authenticatedUser") User user,
-                       @RequestBody @Valid CreateProductRequest request)
-            throws InvalidInputException, UnauthorizedException {
-
+    public UUID create(@RequestAttribute("authenticatedUser") User user, @RequestBody @Valid CreateProductRequest request) throws InvalidInputException, UnauthorizedException {
         return productService.createProduct(user, request);
     }
 
     @GetMapping("/{id}")
-    public ProductResponse get(@RequestAttribute("authenticatedUser") User user,
-                               @PathVariable UUID id)
-            throws EntityNotFoundException, UnauthorizedException {
-
-        Product p = productService.getProduct(user, id);
-
-        return ProductResponse.builder()
-                .id(p.getId())
-                .name(p.getName())
-                .category(p.getCategory())
-                .price(p.getPrice())
-                .stockQuantity(p.getStockQuantity())
-                .supplier(p.getSupplier())
-                .description(p.getDescription())
-                .storeId(p.getStore().getId())
-                .storeName(p.getStore().getName())
-                .insertionTime(p.getInsertionTime())
-                .build();
+    public Product get(@RequestAttribute("authenticatedUser") User user, @PathVariable UUID id) throws EntityNotFoundException, UnauthorizedException {
+        return productService.getProduct(user, id);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public UUID update(@RequestAttribute("authenticatedUser") User user,
-                       @PathVariable UUID id,
-                       @RequestBody @Valid UpdateProductRequest request)
-            throws InvalidInputException, EntityNotFoundException, UnauthorizedException {
-
+    public UUID update(@RequestAttribute("authenticatedUser") User user, @PathVariable UUID id,
+                       @RequestBody @Valid UpdateProductRequest request) throws InvalidInputException, EntityNotFoundException, UnauthorizedException {
        return productService.updateProduct(user, id, request);
     }
 
     @PostMapping("/{id}/stock/increase")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public UUID increase(@RequestAttribute("authenticatedUser") User user,
-                         @PathVariable UUID id,
-                         @RequestBody @Valid StockUpdateRequest request)
-            throws InvalidInputException, EntityNotFoundException, UnauthorizedException {
-
+    public UUID increase(@RequestAttribute("authenticatedUser") User user, @PathVariable UUID id,
+                         @RequestBody @Valid StockUpdateRequest request) throws InvalidInputException, EntityNotFoundException, UnauthorizedException {
        return productService.increaseStock(user, id, request);
     }
 
     @PostMapping("/{id}/stock/decrease")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public UUID decrease(@RequestAttribute("authenticatedUser") User user,
-                         @PathVariable UUID id,
-                         @RequestBody @Valid StockUpdateRequest request)
-            throws InvalidInputException, EntityNotFoundException, UnauthorizedException {
-
+    public UUID decrease(@RequestAttribute("authenticatedUser") User user, @PathVariable UUID id,
+                         @RequestBody @Valid StockUpdateRequest request) throws InvalidInputException, EntityNotFoundException, UnauthorizedException {
        return productService.decreaseStock(user, id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public UUID delete(@RequestAttribute("authenticatedUser") User user,
-                       @PathVariable UUID id)
-            throws EntityNotFoundException, UnauthorizedException {
-
+    public UUID delete(@RequestAttribute("authenticatedUser") User user, @PathVariable UUID id) throws EntityNotFoundException, UnauthorizedException {
        return productService.deleteProduct(user, id);
     }
 }

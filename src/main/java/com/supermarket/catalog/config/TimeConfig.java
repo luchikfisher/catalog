@@ -6,10 +6,10 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Clock;
 
 @Configuration
-public class ClockConfig {
+public class TimeConfig {
 
     @Bean
-    public Clock clock() {
+    public Clock systemClock() {
         return Clock.systemUTC();
     }
 }

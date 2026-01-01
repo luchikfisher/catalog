@@ -3,8 +3,8 @@ package com.supermarket.catalog.e2e;
 import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.dto.user.CreateUserRequest;
 import com.supermarket.catalog.repository.UserRepository;
-import com.supermarket.catalog.testinfra.BaseIntegrationTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.supermarket.catalog.test_config.TestEnvironment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class UserE2ETest extends BaseIntegrationTest {
+class UserE2ETest extends TestEnvironment {
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,18 +43,16 @@ class UserE2ETest extends BaseIntegrationTest {
                 .storeName("E2E Store")
                 .build();
 
-        String response = mockMvc.perform(post("/users")
+        UUID userId = objectMapper.readValue(mockMvc.perform(post("/users-catalog")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
-                .getContentAsString();
+                .getContentAsString(),
+            UUID.class);
 
-        UUID userId = objectMapper.readValue(response, UUID.class);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow();
 
         assertThat(user.getUsername()).isEqualTo("e2e_user");
         assertThat(user.getEmail()).isEqualTo("e2e@test.com");

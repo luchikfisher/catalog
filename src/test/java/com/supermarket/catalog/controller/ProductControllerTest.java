@@ -8,6 +8,7 @@ import com.supermarket.catalog.dto.product.StockUpdateRequest;
 import com.supermarket.catalog.exception.UnauthorizedException;
 import com.supermarket.catalog.service.ProductService;
 import com.supermarket.catalog.validation.HeaderUserValidator;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +41,11 @@ class ProductControllerTest {
     @MockBean
     private HeaderUserValidator headerUserValidator;
 
+    private User user;
+
     @BeforeEach
     void setUp() throws Exception {
+        user = mock(User.class);
         doReturn(true)
                 .when(headerUserValidator)
                 .preHandle(any(), any(), any());
@@ -49,11 +53,8 @@ class ProductControllerTest {
 
     @Test
     void createProduct_returns201() throws Exception {
-
-        User user = mock(User.class);
         UUID productId = UUID.randomUUID();
         when(productService.createProduct(eq(user), any())).thenReturn(productId);
-
         CreateProductRequest request = CreateProductRequest.builder()
                 .name("Milk")
                 .category(Category.DAIRY)
@@ -62,8 +63,7 @@ class ProductControllerTest {
                 .initialQuantity(3)
                 .description("Fresh milk")
                 .build();
-
-        mockMvc.perform(post("/products")
+        mockMvc.perform(post("/products-catalog")
                         .requestAttr("authenticatedUser", user)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -73,9 +73,6 @@ class ProductControllerTest {
 
     @Test
     void createProduct_withInvalidBody_returns400() throws Exception {
-
-        User user = mock(User.class);
-
         CreateProductRequest request = CreateProductRequest.builder()
                 .name("")
                 .category(null)
@@ -84,8 +81,7 @@ class ProductControllerTest {
                 .initialQuantity(null)
                 .description(null)
                 .build();
-
-        mockMvc.perform(post("/products")
+        mockMvc.perform(post("/products-catalog")
                         .requestAttr("authenticatedUser", user)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -104,7 +100,7 @@ class ProductControllerTest {
                 .amount(5)
                 .build();
 
-        mockMvc.perform(post("/products/{id}/stock/increase", productId)
+        mockMvc.perform(post("/products-catalog/{id}/stock/increase", productId)
                         .requestAttr("authenticatedUser", user)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -123,7 +119,7 @@ class ProductControllerTest {
                 .amount(2)
                 .build();
 
-        mockMvc.perform(post("/products/{id}/stock/decrease", productId)
+        mockMvc.perform(post("/products-catalog/{id}/stock/decrease", productId)
                         .requestAttr("authenticatedUser", user)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -138,7 +134,7 @@ class ProductControllerTest {
         when(productService.deleteProduct(eq(user), eq(productId)))
                 .thenReturn(productId);
 
-        mockMvc.perform(delete("/products/{id}", productId)
+        mockMvc.perform(delete("/products-catalog/{id}", productId)
                         .requestAttr("authenticatedUser", user))
                 .andExpect(status().isNoContent());
     }
@@ -149,7 +145,7 @@ class ProductControllerTest {
                 .when(headerUserValidator)
                 .preHandle(any(), any(), any());
 
-        mockMvc.perform(post("/products")
+        mockMvc.perform(post("/products-catalog")
                         .header("X-User-Id", UUID.randomUUID().toString())
                         .header("X-Username", "user")
                         .header("X-Store-Name", "OtherStore")

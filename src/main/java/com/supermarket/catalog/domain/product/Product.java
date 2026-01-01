@@ -9,8 +9,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "products")
+@Table(name = "products_catalog")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -37,8 +38,8 @@ public class Product {
 
     private String description;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "store_id", nullable = false)
+    @ManyToOne( optional = false)
+    @JoinColumn(name = "store_id", referencedColumnName = "id", nullable = false)
     private Store store;
 
     @Column(name = "insertion_time", nullable = false)

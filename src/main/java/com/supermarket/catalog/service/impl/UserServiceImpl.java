@@ -4,7 +4,7 @@ import com.supermarket.catalog.domain.store.Store;
 import com.supermarket.catalog.domain.user.User;
 import com.supermarket.catalog.dto.user.CreateUserRequest;
 import com.supermarket.catalog.dto.user.UpdateUserRequest;
-import com.supermarket.catalog.exception.ConflictException;
+import com.supermarket.catalog.exception.UserAlreadyExistsException;
 import com.supermarket.catalog.exception.EntityNotFoundException;
 import com.supermarket.catalog.repository.StoreRepository;
 import com.supermarket.catalog.repository.UserRepository;
@@ -26,23 +26,13 @@ public class UserServiceImpl implements UserService {
     private final StoreRepository storeRepository;
     private final Clock clock;
 
-    // ===== CREATE =====
     @Override
-    public UUID createUser(CreateUserRequest request)
-            throws ConflictException {
-
-        String storeName = request.storeName().trim();
-
+    public UUID createUser(CreateUserRequest request) throws UserAlreadyExistsException {
+        String storeName = request.storeName();
         if (userRepository.existsByUsername(request.username())) {
             log.warn("Attempt to create duplicate username: {}", request.username());
-            throw new ConflictException("Username already exists");
+            throw new UserAlreadyExistsException("Username already exists");
         }
-
-        if (userRepository.existsByEmail(request.email())) {
-            log.warn("Attempt to create duplicate email: {}", request.email());
-            throw new ConflictException("Email already exists");
-        }
-
         Store store = storeRepository.findByName(storeName)
                 .orElseGet(() -> {
                     Store newStore = Store.builder()
@@ -50,10 +40,8 @@ public class UserServiceImpl implements UserService {
                             .name(storeName)
                             .insertionTime(Instant.now(clock))
                             .build();
-
                     return storeRepository.save(newStore);
                 });
-
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .username(request.username())
@@ -62,65 +50,43 @@ public class UserServiceImpl implements UserService {
                 .store(store)
                 .insertionTime(Instant.now(clock))
                 .build();
-
         userRepository.save(user);
         log.info("User created: {}", user.getId());
-
         return user.getId();
     }
 
-    // ===== READ =====
     @Override
-    public User getUser(UUID userId)
-            throws EntityNotFoundException {
-
+    public User getUser(UUID userId) throws EntityNotFoundException {
         log.info("Fetching user {}", userId);
-
         return userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("User not found: " + userId)
-                );
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
     }
 
-    // ===== UPDATE =====
     @Override
-    public UUID updateUser(UUID userId, UpdateUserRequest request)
-            throws ConflictException, EntityNotFoundException {
-
+    public UUID updateUser(UUID userId, UpdateUserRequest request) throws UserAlreadyExistsException, EntityNotFoundException {
         User existing = getUser(userId);
-
-        if (!existing.getUsername().equals(request.username())
-                && userRepository.existsByUsername(request.username())) {
-            throw new ConflictException("Username already exists");
+        if (!existing.getUsername().equals(request.username()) && userRepository.existsByUsername(request.username())) {
+            throw new UserAlreadyExistsException("Username already exists");
         }
-
-        User updated = User.builder()
+        userRepository.save(User.builder()
                 .id(existing.getId())
                 .username(request.username())
                 .password(request.password())
                 .email(request.email())
                 .store(existing.getStore())
                 .insertionTime(Instant.now(clock))
-                .build();
-
-        userRepository.save(updated);
+                .build());
         log.info("User updated: {}", userId);
-
         return userId;
     }
 
-    // ===== DELETE =====
     @Override
-    public UUID deleteUser(UUID userId)
-            throws EntityNotFoundException {
-
+    public UUID deleteUser(UUID userId) throws EntityNotFoundException {
         if (!userRepository.existsById(userId)) {
             throw new EntityNotFoundException("User not found: " + userId);
         }
-
         userRepository.deleteById(userId);
         log.info("User deleted: {}", userId);
-
         return userId;
     }
 }

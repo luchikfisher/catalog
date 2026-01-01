@@ -1,11 +1,14 @@
-package com.supermarket.catalog.testinfra;
+package com.supermarket.catalog.test_config;
 
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.transaction.annotation.Transactional;
 
-public final class TestEnvironment {
-
-    private TestEnvironment() {
-    }
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+public abstract class TestEnvironment {
 
     public static void registerPostgres(DynamicPropertyRegistry registry) {
 

@@ -24,8 +24,7 @@ public class Store {
     private String name;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Product> products = new ArrayList<>();
+    private List<Product> products;
 
     @Column(name = "insertion_time", nullable = false)
     private Instant insertionTime;

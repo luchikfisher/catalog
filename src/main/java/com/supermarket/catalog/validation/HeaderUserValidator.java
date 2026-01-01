@@ -24,25 +24,21 @@ public class HeaderUserValidator implements HandlerInterceptor {
     private final UserRepository userRepository;
 
     @Override
-    public boolean preHandle(HttpServletRequest request,
-                             HttpServletResponse response,
-                             Object handler) throws UnauthorizedException {
-
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws UnauthorizedException {
         String username  = request.getHeader(USERNAME_HEADER);
-        String userIdRaw = request.getHeader(USER_ID_HEADER);
+        String userId = request.getHeader(USER_ID_HEADER);
         String storeName = request.getHeader(STORE_HEADER);
 
-        Optional.ofNullable(username)
-                .filter(u -> userIdRaw != null && storeName != null)
-                .orElseThrow(() -> new UnauthorizedException("Missing authorization headers"));
+        if (Objects.isNull(username) || Objects.isNull(userId) || Objects.isNull(storeName)) {
+            throw new UnauthorizedException("Missing authentication headers");
+        }
 
-        User user = Optional.of(userIdRaw)
+        User user = Optional.of(userId)
                 .map(UUID::fromString)
                 .flatMap(userRepository::findById)
                 .filter(u -> u.getUsername().equals(username))
                 .filter(u -> u.getStore().getName().equals(storeName))
                 .orElseThrow(() -> new UnauthorizedException("Unauthorized"));
-
         request.setAttribute("authenticatedUser", user);
         return true;
     }

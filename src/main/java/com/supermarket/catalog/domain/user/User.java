@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users_catalog")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,8 +27,8 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "store_id", nullable = false)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "store_id", referencedColumnName = "id", nullable = false)
     private Store store;
 
     @Column(name = "insertion_time", nullable = false)
